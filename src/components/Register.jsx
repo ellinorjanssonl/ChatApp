@@ -13,13 +13,15 @@ const Register = ({ csrfToken }) => {
   useEffect(() => {
     const avatars = [
       'https://i.pravatar.cc/200?img=1',
-      'https://i.pravatar.cc/200?img=2',
-      'https://i.pravatar.cc/200?img=3',
-      'https://i.pravatar.cc/200?img=4',
-      'https://i.pravatar.cc/200?img=5',
-      'https://i.pravatar.cc/200?img=6',
-      'https://i.pravatar.cc/200?img=7',
       'https://i.pravatar.cc/200?img=8',
+      'https://i.pravatar.cc/200?img=25',
+      'https://i.pravatar.cc/200?img=32',
+      'https://i.pravatar.cc/200?img=52',
+      'https://i.pravatar.cc/200?img=12',
+      'https://i.pravatar.cc/200?img=27',
+      'https://i.pravatar.cc/200?img=28',
+      'https://i.pravatar.cc/200?img=39',
+      'https://i.pravatar.cc/200?img=10',
     ];
     setImages(avatars);
   }, []);
@@ -72,8 +74,8 @@ const Register = ({ csrfToken }) => {
               key={index}
               src={image}
               alt="avatar"
-              width="100"
-              height="100"
+              width="200"
+              height="200"
               onClick={() => setAvatar(image)}
               style={{ cursor: 'pointer', border: avatar === image ? '2px solid blue' : 'none' }}
             />
