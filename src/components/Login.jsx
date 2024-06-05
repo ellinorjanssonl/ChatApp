@@ -43,10 +43,10 @@ const Login = ({ setToken, csrfToken }) => {
       setSuccess('Login successful');
       setError('');
 
-      // Navigate to profile after a delay
+      
       setTimeout(() => {
         navigate('/profile');
-      }, 2000); // 2 seconds delay
+      }, 1000); 
     })
     .catch(err => {
       console.error('Failed to login:', err);
@@ -54,7 +54,8 @@ const Login = ({ setToken, csrfToken }) => {
       setSuccess('');
     });
   };
-
+  
+  //en funktion för att skapa ett jwt token som innehåller användarens id, användarnamn, email och avatar
   function parseJwt(token) {
     try {
       const base64Url = token.split('.')[1];

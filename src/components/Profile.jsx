@@ -6,9 +6,6 @@ const Profile = ({ csrfToken, token }) => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
-  const username = localStorage.getItem('username');
-  const email = localStorage.getItem('email');
-  const avatar = localStorage.getItem('avatar');
 
   useEffect(() => {
     if (!csrfToken) {
@@ -41,7 +38,7 @@ const Profile = ({ csrfToken, token }) => {
 
         const data = await res.json();
         console.log('Fetched user data:', data);
-        setUser(data);
+        setUser(data[0]);  // Set user to the first element of the array
       } catch (err) {
         console.error('Error fetching user data:', err);
         setError('Failed to fetch user data');
@@ -90,9 +87,24 @@ const Profile = ({ csrfToken, token }) => {
       <h1>Profile</h1>
       {user ? (
         <div>
-          <img src={avatar} alt="avatar" width="100" height="100" />
-          <p>Username: {username}</p>
-          <p>Email: {email}</p>
+          <img src={user.avatar} alt="avatar" width="200" height="200" />
+          <br />
+          <input type="text" placeholder="New Avatar URL" />
+          <button>Update Avatar</button>
+          <br />
+          <p>Username: {user.username}</p>
+          <input type="text" placeholder="New Username" />
+          <button>Update Username</button>
+          <br />
+          <p>Email: {user.email}</p>
+          <input type="email" placeholder="New Email" />
+          <button>Update Email</button>
+          <br />
+          <p>Created At: {new Date(user.createdAt).toLocaleString()}</p>
+          <p>Updated At: {new Date(user.updatedAt).toLocaleString()}</p>
+          <input type="password" placeholder="New Password" />
+          <button>Update Password</button>
+          <br />
           <button onClick={handleDelete}>Delete Account</button>
         </div>
       ) : (
