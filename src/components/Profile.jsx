@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Profile = ({ csrfToken, token }) => {
+const Profile = ({ csrfToken, token, setToken }) => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
+  const [newAvatar, setNewAvatar] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
 
@@ -66,17 +70,46 @@ const Profile = ({ csrfToken, token }) => {
       }
 
       console.log('User deleted successfully');
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('username');
-      localStorage.removeItem('email');
-      localStorage.removeItem('avatar');
+      setToken(''); // Reset the token in the state
       navigate('/login'); // Redirect to login page after deletion
     } catch (err) {
       console.error('Error deleting user:', err);
       setError('Failed to delete user');
     }
   };
+
+  const handleUserUpdate = async (updatedData) => {
+    try {
+      const res = await fetch(`https://chatify-api.up.railway.app/user`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+         
+        },
+        body: JSON.stringify({
+          userId,
+          updatedData,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update user');
+      }
+
+      console.log('User updated successfully');
+      const updatedUser = { ...user, ...updatedData };
+      setUser(updatedUser); // Update local user state
+    } catch (err) {
+      console.error('Error updating user:', err);
+      setError('Failed to update user');
+    }
+  };
+
+  const handleUpdateAvatar = () => handleUserUpdate({ avatar: newAvatar });
+  const handleUpdateUsername = () => handleUserUpdate({ username: newUsername });
+  const handleUpdateEmail = () => handleUserUpdate({ email: newEmail });
+  const handleUpdatePassword = () => handleUserUpdate({ password: newPassword });
 
   if (error) {
     return <p style={{ color: 'red' }}>{error}</p>;
@@ -89,21 +122,41 @@ const Profile = ({ csrfToken, token }) => {
         <div>
           <img src={user.avatar} alt="avatar" width="200" height="200" />
           <br />
-          <input type="text" placeholder="New Avatar URL" />
-          <button>Update Avatar</button>
+          <input
+            type="text"
+            placeholder="New Avatar URL"
+            value={newAvatar}
+            onChange={(e) => setNewAvatar(e.target.value)}
+          />
+          <button onClick={handleUpdateAvatar}>Update Avatar</button>
           <br />
           <p>Username: {user.username}</p>
-          <input type="text" placeholder="New Username" />
-          <button>Update Username</button>
+          <input
+            type="text"
+            placeholder="New Username"
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+          />
+          <button onClick={handleUpdateUsername}>Update Username</button>
           <br />
           <p>Email: {user.email}</p>
-          <input type="email" placeholder="New Email" />
-          <button>Update Email</button>
+          <input
+            type="email"
+            placeholder="New Email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+          />
+          <button onClick={handleUpdateEmail}>Update Email</button>
           <br />
           <p>Created At: {new Date(user.createdAt).toLocaleString()}</p>
           <p>Updated At: {new Date(user.updatedAt).toLocaleString()}</p>
-          <input type="password" placeholder="New Password" />
-          <button>Update Password</button>
+          <input
+            type="password"
+            placeholder="New Password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+          <button onClick={handleUpdatePassword}>Update Password</button>
           <br />
           <button onClick={handleDelete}>Delete Account</button>
         </div>

@@ -13,7 +13,11 @@ const App = () => {
   const [csrfToken, setCsrfToken] = useState('');
 
   useEffect(() => {
-    localStorage.setItem('token', token);
+    if (token) {
+      localStorage.setItem('token', token);
+    } else {
+      localStorage.removeItem('token');
+    }
   }, [token]);
 
   return (
@@ -27,7 +31,7 @@ const App = () => {
           {token ? (
             <>
               <Route path="/chat" element={<Chat token={token} />} />
-              <Route path="/profile" element={<Profile token={token} csrfToken={csrfToken} />} />
+              <Route path="/profile" element={<Profile token={token} csrfToken={csrfToken} setToken={setToken} />} />
             </>
           ) : (
             <Route path="*" element={<Navigate to="/login" />} />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './Css/Register.css';
 
 const Register = ({ csrfToken }) => {
   const [username, setUsername] = useState('');
@@ -12,7 +13,6 @@ const Register = ({ csrfToken }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // When the component mounts, set initial images
     setImages(getRandomAvatars());
   }, []);
 
@@ -49,7 +49,7 @@ const Register = ({ csrfToken }) => {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'Registration failed');
+        throw new Error(data.message || 'username or email already exists');
       }
 
       console.log('Registered successfully', data);
@@ -73,17 +73,23 @@ const Register = ({ csrfToken }) => {
   };
 
   return (
-    <div>
-      <h1>Register</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form id="register" onSubmit={handleRegister}>
-        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <div>
-          <button type="button" onClick={handleChooseAvatar}>Choose Avatar</button>
+    <div className="container">
+      <div className="register-form">
+        <h1>REGISTER</h1>
+        {error && <p className="error">{error}</p>}
+        <form id="register" onSubmit={handleRegister}>
+          <label>
+            <input type="text" placeholder='Username' value={username} onChange={(e) => setUsername(e.target.value)} />
+          </label>
+          <label>
+            <input type="password" placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} />
+          </label>
+          <label>
+            <input type="email" placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
+          </label>
+          <button  className="buttonavatar" type="button" onClick={handleChooseAvatar}>Choose Avatar</button>
           {showAvatarPicker && (
-            <div>
+            <div className="avatar-picker">
               {images.map((image, index) => (
                 <img
                   key={index}
@@ -92,20 +98,23 @@ const Register = ({ csrfToken }) => {
                   width="100"
                   height="100"
                   onClick={() => handleAvatarClick(image)}
-                  style={{ cursor: 'pointer', border: avatar === image ? '2px solid blue' : 'none' }}
+                  className={avatar === image ? 'selected' : ''}
                 />
               ))}
             </div>
+           
           )}
-        </div>
-        <button type="submit">Register</button>
-      </form>
-      {avatar && (
-        <div>
-          <h3>Selected Avatar:</h3>
-          <img src={avatar} alt="Selected avatar" width="100" height="100" />
-        </div>
-      )}
+          {avatar && (
+          <div>
+            <h3>Selected Avatar:</h3>
+            <img src={avatar} alt="Selected avatar" width="100" height="100" />
+          </div>
+        )}
+           <br />
+          <button className='buttonsubmit' type="submit">Register</button>
+        </form>
+        
+      </div>
     </div>
   );
 };

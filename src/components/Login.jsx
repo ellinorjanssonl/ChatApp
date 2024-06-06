@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './Css/Login.css';
 
 const Login = ({ setToken, csrfToken }) => {
   const [username, setUsername] = useState('');
@@ -43,7 +44,6 @@ const Login = ({ setToken, csrfToken }) => {
       setSuccess('Login successful');
       setError('');
 
-      
       setTimeout(() => {
         navigate('/profile');
       }, 1000); 
@@ -54,8 +54,7 @@ const Login = ({ setToken, csrfToken }) => {
       setSuccess('');
     });
   };
-  
-  //en funktion för att skapa ett jwt token som innehåller användarens id, användarnamn, email och avatar
+
   function parseJwt(token) {
     try {
       const base64Url = token.split('.')[1];
@@ -67,25 +66,25 @@ const Login = ({ setToken, csrfToken }) => {
     } catch (e) {
       console.error('Invalid token', e);
       return null;
+    }
   }
-}
 
   return (
-    <div>
-      <form onSubmit={handleLogin}>
-        <h1>Login</h1>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        {success && <p style={{ color: 'green' }}>{success}</p>}
-        <label>
-          Username:
-          <input type="text" value={username} onChange={e => setUsername(e.target.value)} />
-        </label>
-        <label>
-          Password:
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
-        </label>
-        <button type="submit">Login</button>
-      </form>
+    <div className="container">
+      <div className="login-form">
+        <h1>LOGIN</h1>
+        {error && <p className="error">{error}</p>}
+        {success && <p className="success">{success}</p>}
+        <form onSubmit={handleLogin}>
+          <label>
+            <input type="text" placeholder='Username' value={username} onChange={e => setUsername(e.target.value)} />
+          </label>
+          <label>
+            <input type="password" placeholder='Password' value={password} onChange={e => setPassword(e.target.value)} />
+          </label>
+          <button type="submit">Login</button>
+        </form>
+      </div>
     </div>
   );
 }
