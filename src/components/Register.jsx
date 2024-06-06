@@ -95,8 +95,8 @@ const Register = ({ csrfToken }) => {
                   key={index}
                   src={image}
                   alt="avatar"
-                  width="100"
-                  height="100"
+                  width="90"
+                  height="90"
                   onClick={() => handleAvatarClick(image)}
                   className={avatar === image ? 'selected' : ''}
                 />
@@ -106,8 +106,8 @@ const Register = ({ csrfToken }) => {
           )}
           {avatar && (
           <div>
-            <h3>Selected Avatar:</h3>
-            <img src={avatar} alt="Selected avatar" width="100" height="100" />
+            <h1>Selected Avatar:</h1>
+            <img src={avatar} alt="Selected avatar" width="200" height="200" />
           </div>
         )}
            <br />

@@ -28,6 +28,8 @@
     margin-bottom: 2rem;
     font-size: 1.5rem;
     text-align: center;
+    color: #7d517f;
+    font-weight: lighter;
   }
   
   .register-form p {
@@ -52,8 +54,6 @@
     margin-bottom: 2rem;
     border-radius: 4px;
     background-color: #f7f7f7;
-
-
   }
   
   .buttonsubmit{
@@ -65,14 +65,13 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
-  
   }
 
   .buttonavatar {
     width: 50%;
     justify-content: center;
     padding: 10px;
-    background-color: #a1a1a1;
+    background-color: #7d517f;
     color: white;
     border: none;
     border-radius: 4px;
@@ -100,9 +99,16 @@
     cursor: pointer;
     border: none;
     box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.3);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 50%;
   }
-  
-  .register-form .avatar-picker img.selected {
-    border-color: blue;
+
+  .avatar-picker {
+    justify-content: center;
+    text-align: center;
+    align-items: center;
   }
+
   
