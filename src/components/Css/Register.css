@@ -2,19 +2,23 @@
 
 .container {
    background-color: #8EC5FC;
-    background-image: linear-gradient(62deg, #8EC5FC 0%, #E0C3FC 100%);
+    background-image: url('/src/components/Assets/background.svg');
+    background-repeat: no-repeat;
+    background-size: cover;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
   }
+
   
   .register-form {
     width: 100%;
     max-width: 40vw;
     padding: 2rem;
-    background: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    background: rgba(255 255 255 / 26%);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     margin-top: 2rem;
     margin-bottom: 2rem;
@@ -28,7 +32,7 @@
     margin-bottom: 2rem;
     font-size: 1.5rem;
     text-align: center;
-    color: #7d517f;
+    color: #310d32;
     font-weight: lighter;
   }
   
@@ -60,7 +64,7 @@
     width: 50%;
     justify-content: center;
     padding: 10px;
-    background-color: #4caf50;
+    background-color: rgba(20, 255, 71, 0.5);
     color: white;
     border: none;
     border-radius: 4px;
@@ -68,20 +72,22 @@
   }
 
   .buttonavatar {
-    width: 50%;
+    width: 5rem;
+    height: 5rem;
     justify-content: center;
     padding: 10px;
-    background-color: #7d517f;
+    background-color: rgba(52 8 65 / 50%);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 100%;
     cursor: pointer;
     margin-bottom: 2rem;
   }
-  
+
   .register-form button:hover {
-    background-color: #45a049;
+    background-color: rgba(14, 203, 0, 0.7);
   }
+
   
   .register-form .error {
     color: red;
@@ -109,6 +115,11 @@
     justify-content: center;
     text-align: center;
     align-items: center;
+  }
+
+  .selectedavatar {
+    border-radius: 100%;
+    box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.3);
   }
 
   

@@ -107,7 +107,7 @@ const Register = ({ csrfToken }) => {
           {avatar && (
           <div>
             <h1>Selected Avatar:</h1>
-            <img src={avatar} alt="Selected avatar" width="200" height="200" />
+            <img className='selectedavatar' src={avatar} alt="Selected avatar" width="200" height="200" />
           </div>
         )}
            <br />
