@@ -77,10 +77,10 @@ const Login = ({ setToken, csrfToken }) => {
         {success && <p className="success">{success}</p>}
         <form onSubmit={handleLogin}>
           <label>
-            <input type="text" placeholder='Username' value={username} onChange={e => setUsername(e.target.value)} />
+            <input type="text" placeholder='Username 👤' value={username} onChange={e => setUsername(e.target.value)} />
           </label>
           <label>
-            <input type="password" placeholder='Password' value={password} onChange={e => setPassword(e.target.value)} />
+            <input type="password" placeholder='Password 🔒' value={password} onChange={e => setPassword(e.target.value)} />
           </label>
           <button type="submit">Login</button>
         </form>

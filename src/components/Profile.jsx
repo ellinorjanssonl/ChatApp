@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './Css/Profile.css';
+import FetchAvatars from './FetchAvatar';
 
 const Profile = ({ csrfToken, token, setToken }) => {
   const [user, setUser] = useState(null);
@@ -100,6 +102,11 @@ const Profile = ({ csrfToken, token, setToken }) => {
       console.log('User updated successfully');
       const updatedUser = { ...user, ...updatedData };
       setUser(updatedUser); // Update local user state
+      // Clear the form fields after successful update
+      setNewAvatar('');
+      setNewUsername('');
+      setNewEmail('');
+      setNewPassword('');
     } catch (err) {
       console.error('Error updating user:', err);
       setError('Failed to update user');
@@ -112,57 +119,61 @@ const Profile = ({ csrfToken, token, setToken }) => {
   const handleUpdatePassword = () => handleUserUpdate({ password: newPassword });
 
   if (error) {
-    return <p style={{ color: 'red' }}>{error}</p>;
+    return <p className="error-message">{error}</p>;
   }
 
   return (
-    <div>
-      <h1>Profile</h1>
-      {user ? (
-        <div>
-          <img src={user.avatar} alt="avatar" width="200" height="200" />
-          <br />
-          <input
-            type="text"
-            placeholder="New Avatar URL"
+    <div className="profile-container">
+      <div className="profile-info">
+      <div className="profile-header">
+        {user ? (
+          <>
+            <img src={user.avatar} alt="avatar" />
+            <h1>{user.username}</h1>
+            <p>{user.email}</p>
+          </>
+        ) : (
+          <p className="loading-message">Loading...</p>
+        )}
+      </div>
+      {user && (
+        <div className="profile-form">
+          <button
+            className="avatar-button"
             value={newAvatar}
             onChange={(e) => setNewAvatar(e.target.value)}
+            
           />
-          <button onClick={handleUpdateAvatar}>Update Avatar</button>
-          <br />
-          <p>Username: {user.username}</p>
+          <FetchAvatars setAvatar={setNewAvatar} />
+          <button  className='uppdatebutton' onClick={handleUpdateAvatar}>Update Avatar</button>
           <input
             type="text"
             placeholder="New Username"
             value={newUsername}
             onChange={(e) => setNewUsername(e.target.value)}
+           
           />
-          <button onClick={handleUpdateUsername}>Update Username</button>
-          <br />
-          <p>Email: {user.email}</p>
+          <button className='uppdatebutton' onClick={handleUpdateUsername}>Update Username</button>
           <input
             type="email"
             placeholder="New Email"
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
+           
           />
-          <button onClick={handleUpdateEmail}>Update Email</button>
-          <br />
-          <p>Created At: {new Date(user.createdAt).toLocaleString()}</p>
-          <p>Updated At: {new Date(user.updatedAt).toLocaleString()}</p>
+          <button className='uppdatebutton' onClick={handleUpdateEmail}>Update Email</button>
           <input
             type="password"
             placeholder="New Password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
+           
           />
-          <button onClick={handleUpdatePassword}>Update Password</button>
-          <br />
-          <button onClick={handleDelete}>Delete Account</button>
+          <button className='uppdatebutton' onClick={handleUpdatePassword}>Update Password</button>
+          <button className="delete-button" onClick={handleDelete}>Delete Account</button>
         </div>
-      ) : (
-        <p>Loading...</p>
       )}
+    </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 /* Login.css */
 
 .container {
-    background-image: url('/src/components/Assets/background.svg');
+    background-image: url('/src/components/Assets/Register.svg');
     background-repeat: no-repeat;
     background-size: cover;
     display: flex;
@@ -26,9 +26,10 @@
   
   .login-form h1 {
     margin-bottom: 2rem;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
+    letter-spacing: 10px;
     text-align: center;
-    color: #310d32;
+    color: #f4f4f4;
     font-weight: lighter;
   }
   
@@ -38,9 +39,10 @@
     margin: 0 20%;
     flex-direction: column;
     margin-bottom: 1rem;
-    justify-content: center;
-    text-align: center;
-    align-items: center;
+  }
+
+  .login-form ::placeholder {
+    color: #e0e0e0;
   }
   
   .login-form input {
@@ -49,6 +51,8 @@
     margin-bottom: 20px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    background-color: rgba(51, 0, 57, 0.3);
+    color: white;
   }
   
   .login-form button {
