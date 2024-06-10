@@ -153,6 +153,7 @@ const Chat = ({ csrfToken, token, userId }) => {
   };
 
   return (
+    <div className="chatcontainer">
     <div className="flex flex-col items-center p-4">
       <div className="mb-4">
         <button onClick={handleConversationChange} className="px-4 py-2 bg-blue-500 text-white rounded">
@@ -205,6 +206,7 @@ const Chat = ({ csrfToken, token, userId }) => {
         </button>
       </div>
       {error && <p className="text-red-500 mt-4">{error}</p>}
+    </div>
     </div>
   );
 };
