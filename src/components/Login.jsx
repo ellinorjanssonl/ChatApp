@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Css/Login.css';
 
-const Login = ({ setToken, csrfToken }) => {
+const Login = ({ setToken, setUserId, csrfToken }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -15,13 +15,14 @@ const Login = ({ setToken, csrfToken }) => {
     fetch('https://chatify-api.up.railway.app/auth/token', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         username,
         password,
-        csrfToken 
-      })
+        csrfToken,  // Include CSRF token in the body
+      }),
+   
     })
     .then(async res => {
       if (!res.ok) {
@@ -41,6 +42,7 @@ const Login = ({ setToken, csrfToken }) => {
       localStorage.setItem('avatar', avatar);
       localStorage.setItem('email', email);
       setToken(token);
+      setUserId(userId);
       setSuccess('Login successful');
       setError('');
 
@@ -77,7 +79,7 @@ const Login = ({ setToken, csrfToken }) => {
         {success && <p className="success">{success}</p>}
         <form onSubmit={handleLogin}>
           <label>
-            <input type="text" placeholder='Username 👤' value={username} onChange={e => setUsername(e.target.value)} />
+            <input type="text" placeholder='Username ' value={username} onChange={e => setUsername(e.target.value)} />
           </label>
           <label>
             <input type="password" placeholder='Password 🔒' value={password} onChange={e => setPassword(e.target.value)} />

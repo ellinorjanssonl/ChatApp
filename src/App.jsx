@@ -10,6 +10,7 @@ import './index.css';
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
   const [csrfToken, setCsrfToken] = useState('');
 
   useEffect(() => {
@@ -20,6 +21,14 @@ const App = () => {
     }
   }, [token]);
 
+  useEffect(() => {
+    if (userId) {
+      localStorage.setItem('userId', userId);
+    } else {
+      localStorage.removeItem('userId');
+    }
+  }, [userId]);
+
   return (
     <div>
       <FetchCsrfToken setCsrfToken={setCsrfToken} />
@@ -27,10 +36,10 @@ const App = () => {
         <SideNav token={token} setToken={setToken} />
         <Routes>
           <Route path="/" element={<Register csrfToken={csrfToken} />} />
-          <Route path="/login" element={<Login setToken={setToken} csrfToken={csrfToken} />} />
+          <Route path="/login" element={<Login setToken={setToken} setUserId={setUserId} csrfToken={csrfToken} />} />
           {token ? (
             <>
-              <Route path="/chat" element={<Chat token={token} />} />
+                <Route path="/chat" element={<Chat csrfToken={csrfToken} token={token} userId={userId} />} />
               <Route path="/profile" element={<Profile token={token} csrfToken={csrfToken} setToken={setToken} />} />
             </>
           ) : (

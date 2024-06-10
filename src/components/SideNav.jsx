@@ -33,13 +33,13 @@ const SideNav = ({ token, setToken }) => {
           <ul className="space-y-4">
             {!isLoggedIn ? (
               <>
-                <li><Link to="/" className="block px-4 py-2 hover:bg-gray-700">Register</Link></li>
+                <li><Link to="/" className="block px-4 py-2 hover:bg-gray-700">Register  </Link></li>
                 <li><Link to="/login" className="block px-4 py-2 hover:bg-gray-700">Login</Link></li>
               </>
             ) : (
               <>
-                <li><Link to="/chat" className="block px-4 py-2 hover:bg-gray-700">Chat</Link></li>
                 <li><Link to="/profile" className="block px-4 py-2 hover:bg-gray-700">Profile</Link></li>
+                <li><Link to="/chat" className="block px-4 py-2 hover:bg-gray-700">Chat</Link></li>
                 <li><button onClick={handleLogout} className="block px-4 py-2 w-full text-left hover:bg-gray-700">Logout</button></li>
               </>
             )}

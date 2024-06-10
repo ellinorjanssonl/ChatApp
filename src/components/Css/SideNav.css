@@ -53,6 +53,11 @@
     cursor: pointer;
     padding: 8px 0;
   }
+
+  .sidenav ul li a:hover, .sidenav ul li button:hover {
+    background:none;
+    color: #6bef78;
+  }
   
 
   

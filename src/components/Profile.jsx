@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Css/Profile.css';
-import FetchAvatars from './FetchAvatar';
 
 const Profile = ({ csrfToken, token, setToken }) => {
   const [user, setUser] = useState(null);
@@ -9,7 +8,8 @@ const Profile = ({ csrfToken, token, setToken }) => {
   const [newAvatar, setNewAvatar] = useState('');
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [avatars, setAvatars] = useState([]);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
 
@@ -26,6 +26,30 @@ const Profile = ({ csrfToken, token, setToken }) => {
     }
 
     console.log('Fetching user data with:', { csrfToken, token, userId });
+
+    const GetAllUsers = async () => {
+      try {
+        const res = await fetch(`https://chatify-api.up.railway.app/users`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+        });
+        if (!res.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+        const data = await res.json();
+        console.log('Fetched user data:', data);
+        setUser(data);
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+        setError('Failed to fetch user data');
+      }
+    };
+     GetAllUsers();
+
+
 
     const fetchUserData = async () => {
       try {
@@ -51,8 +75,30 @@ const Profile = ({ csrfToken, token, setToken }) => {
       }
     };
 
-    fetchUserData();
+    setTimeout(fetchUserData, 1000); 
   }, [csrfToken, token, userId]);
+
+  const getRandomAvatars = () => {
+    let randomAvatars = [];
+    while (randomAvatars.length < 10) {
+      const randomId = Math.floor(Math.random() * 70) + 1; // Generate random ID between 1 and 70
+      const avatarUrl = `https://i.pravatar.cc/200?img=${randomId}`;
+      if (!randomAvatars.includes(avatarUrl)) {
+        randomAvatars.push(avatarUrl);
+      }
+    }
+    return randomAvatars;
+  };
+
+  const handleChooseAvatar = () => {
+    setAvatars(getRandomAvatars());
+    setShowAvatarPicker(true);
+  };
+
+  const handleAvatarClick = (image) => {
+    setNewAvatar(image);
+    setShowAvatarPicker(false);
+  };
 
   const handleDelete = async () => {
     try {
@@ -63,7 +109,6 @@ const Profile = ({ csrfToken, token, setToken }) => {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
       });
 
@@ -87,7 +132,6 @@ const Profile = ({ csrfToken, token, setToken }) => {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-         
         },
         body: JSON.stringify({
           userId,
@@ -106,7 +150,6 @@ const Profile = ({ csrfToken, token, setToken }) => {
       setNewAvatar('');
       setNewUsername('');
       setNewEmail('');
-      setNewPassword('');
     } catch (err) {
       console.error('Error updating user:', err);
       setError('Failed to update user');
@@ -116,7 +159,6 @@ const Profile = ({ csrfToken, token, setToken }) => {
   const handleUpdateAvatar = () => handleUserUpdate({ avatar: newAvatar });
   const handleUpdateUsername = () => handleUserUpdate({ username: newUsername });
   const handleUpdateEmail = () => handleUserUpdate({ email: newEmail });
-  const handleUpdatePassword = () => handleUserUpdate({ password: newPassword });
 
   if (error) {
     return <p className="error-message">{error}</p>;
@@ -125,57 +167,71 @@ const Profile = ({ csrfToken, token, setToken }) => {
   return (
     <div className="profile-container">
       <div className="profile-info">
-      <div className="profile-header">
-        {user ? (
-          <>
-            <img src={user.avatar} alt="avatar" />
-            <h1>{user.username}</h1>
-            <p>{user.email}</p>
-          </>
-        ) : (
-          <p className="loading-message">Loading...</p>
+        <div className="profile-header">
+          {user ? (
+            <>
+              <img src={user.avatar} alt="avatar" />
+              <h1>{user.username}</h1>
+              <p>{user.email}</p>
+            </>
+          ) : (
+            <div className="spinner">
+                </div> 
+          )}
+        </div>
+        {user && (
+          <div className="profile-form">
+            <button className="buttonavatars" onClick={handleChooseAvatar}>
+              Choose New Avatar
+            </button>
+            {showAvatarPicker && (
+              <div className="avatar-picker">
+                {avatars.map((image, index) => (
+                  <img
+                    key={index}
+                    src={image}
+                    alt="avatar"
+                    onClick={() => handleAvatarClick(image)}
+                    className={newAvatar === image ? 'selected' : ''}
+                  />
+                ))}
+              </div>
+            )}
+            {newAvatar && (
+              <div>
+                <h3>Selected new avatar:</h3>
+                <img src={newAvatar} className='new-avatars' alt="New avatar"/>
+                <button className="uppdatebutton" onClick={handleUpdateAvatar}>
+                  Update Avatar!
+                </button>
+              </div>
+            )}
+            <input
+              type="text"
+              placeholder="New Username"
+              value={newUsername}
+              onChange={(e) => setNewUsername(e.target.value)}
+            />
+            <button className="uppdatebutton" onClick={handleUpdateUsername}>
+              Update Username
+            </button>
+            <input
+              type="email"
+              placeholder="New Email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+            />
+            <button className="uppdatebutton" onClick={handleUpdateEmail}>
+              Update Email
+            </button>
+            <button className="delete-button" onClick={handleDelete}>
+              Delete Account
+            </button>
+          </div>
         )}
       </div>
-      {user && (
-        <div className="profile-form">
-          <button
-            className="avatar-button"
-            value={newAvatar}
-            onChange={(e) => setNewAvatar(e.target.value)}
-            
-          />
-          <FetchAvatars setAvatar={setNewAvatar} />
-          <button  className='uppdatebutton' onClick={handleUpdateAvatar}>Update Avatar</button>
-          <input
-            type="text"
-            placeholder="New Username"
-            value={newUsername}
-            onChange={(e) => setNewUsername(e.target.value)}
-           
-          />
-          <button className='uppdatebutton' onClick={handleUpdateUsername}>Update Username</button>
-          <input
-            type="email"
-            placeholder="New Email"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-           
-          />
-          <button className='uppdatebutton' onClick={handleUpdateEmail}>Update Email</button>
-          <input
-            type="password"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-           
-          />
-          <button className='uppdatebutton' onClick={handleUpdatePassword}>Update Password</button>
-          <button className="delete-button" onClick={handleDelete}>Delete Account</button>
-        </div>
-      )}
-    </div>
     </div>
   );
-}
+};
 
 export default Profile;
