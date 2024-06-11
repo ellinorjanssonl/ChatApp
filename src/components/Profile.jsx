@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Css/Profile.css';
 
-const Profile = ({ csrfToken, token, setToken }) => {
+const Profile = ({ token, setToken }) => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
   const [newAvatar, setNewAvatar] = useState('');
@@ -10,46 +10,18 @@ const Profile = ({ csrfToken, token, setToken }) => {
   const [newEmail, setNewEmail] = useState('');
   const [avatars, setAvatars] = useState([]);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); 
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
-    if (!csrfToken) {
-      console.log('Waiting for CSRF token...');
-      return;
-    }
-
     if (!token || !userId) {
       console.log('Missing token or userId:', { token, userId });
       setError('Missing Auth token or User ID');
       return;
     }
 
-    console.log('Fetching user data with:', { csrfToken, token, userId });
-
-    const GetAllUsers = async () => {
-      try {
-        const res = await fetch(`https://chatify-api.up.railway.app/users`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-        });
-        if (!res.ok) {
-          throw new Error('Failed to fetch user data');
-        }
-        const data = await res.json();
-        console.log('Fetched user data:', data);
-        setUser(data);
-      } catch (err) {
-        console.error('Error fetching user data:', err);
-        setError('Failed to fetch user data');
-      }
-    };
-     GetAllUsers();
-
-
+    console.log('Fetching user data with token and userId:', { token, userId });
 
     const fetchUserData = async () => {
       try {
@@ -57,8 +29,7 @@ const Profile = ({ csrfToken, token, setToken }) => {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken,
+            'Content-Type': 'application/json'
           },
         });
 
@@ -75,8 +46,8 @@ const Profile = ({ csrfToken, token, setToken }) => {
       }
     };
 
-    setTimeout(fetchUserData, 1000); 
-  }, [csrfToken, token, userId]);
+    fetchUserData();
+  }, [token, userId]);
 
   const getRandomAvatars = () => {
     let randomAvatars = [];
@@ -102,13 +73,13 @@ const Profile = ({ csrfToken, token, setToken }) => {
 
   const handleDelete = async () => {
     try {
-      console.log('Attempting to delete user with:', { csrfToken, token, userId });
+      console.log('Attempting to delete user with:', { token, userId });
 
       const res = await fetch(`https://chatify-api.up.railway.app/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
       });
 
@@ -131,28 +102,29 @@ const Profile = ({ csrfToken, token, setToken }) => {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          userId,
+          userId: parseInt(userId),
           updatedData,
         }),
       });
 
       if (!res.ok) {
-        throw new Error('Failed to update user');
+        const errorText = await res.text();
+        throw new Error(errorText || 'Failed to update user');
       }
 
       console.log('User updated successfully');
-      const updatedUser = { ...user, ...updatedData };
-      setUser(updatedUser); // Update local user state
+      const data = await res.json(); // Fetch updated user data from response
+      setUser((prevUser) => ({ ...prevUser, ...updatedData })); // Update local user state with new data
       // Clear the form fields after successful update
       setNewAvatar('');
       setNewUsername('');
       setNewEmail('');
     } catch (err) {
       console.error('Error updating user:', err);
-      setError('Failed to update user');
+      setError(`Failed to update user: ${err.message}`);
     }
   };
 
@@ -176,7 +148,7 @@ const Profile = ({ csrfToken, token, setToken }) => {
             </>
           ) : (
             <div className="spinner">
-                </div> 
+            </div> 
           )}
         </div>
         {user && (
@@ -224,12 +196,22 @@ const Profile = ({ csrfToken, token, setToken }) => {
             <button className="uppdatebutton" onClick={handleUpdateEmail}>
               Update Email
             </button>
-            <button className="delete-button" onClick={handleDelete}>
+            <button className="delete-button" onClick={() => setShowDeleteConfirm(true)}>
               Delete Account
             </button>
           </div>
         )}
       </div>
+
+      {showDeleteConfirm && (
+        <div className="delete-confirm">
+          <div className="modal">
+          <p>Are you sure you want to delete this user?</p>
+          <button onClick={handleDelete} className="confirm-button">Yes</button>
+          <button onClick={() => setShowDeleteConfirm(false)} className="cancel-button">No</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

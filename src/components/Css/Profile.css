@@ -159,6 +159,8 @@
     text-align: center;
     width: 100%;
     margin: 0 auto;
+    padding-bottom: 2rem;
+    padding-top: 1rem;
   }
 
   /* Spinner.css */
@@ -179,7 +181,7 @@
     }
   }
 
-  .modal {
+  .delete-confirm {
     position: fixed;
     top: 0;
     left: 0;
@@ -192,7 +194,7 @@
     z-index: 1000;
   }
   
-  .modal-content {
+  .modal {
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(10px);
     padding: 2rem;
@@ -218,6 +220,13 @@
     color: white;
     border: none;
     border-radius: 5px;
+  }
+
+  @media screen and (max-width: 768px) {
+    .profile-info {
+      max-width: 90vw;
+    }
+    
   }
   
   

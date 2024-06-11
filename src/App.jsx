@@ -39,8 +39,8 @@ const App = () => {
           <Route path="/login" element={<Login setToken={setToken} setUserId={setUserId} csrfToken={csrfToken} />} />
           {token ? (
             <>
-                <Route path="/chat" element={<Chat csrfToken={csrfToken} token={token} userId={userId} />} />
-              <Route path="/profile" element={<Profile token={token} csrfToken={csrfToken} setToken={setToken} />} />
+              <Route path="/chat" element={<Chat token={token} userId={userId} />} />
+              <Route path="/profile" element={<Profile token={token} setToken={setToken} />} />
             </>
           ) : (
             <Route path="*" element={<Navigate to="/login" />} />

@@ -58,6 +58,31 @@
     background:none;
     color: #6bef78;
   }
+
+  @media screen and (max-width: 768px){
+    .sidenav {
+      width: 50%;
+    }
+
+    .sidenav ul li {
+      padding: 8px 0;
+      font-size: 1.5rem;
+    }
+
+    .sidenav ul li a, .sidenav ul li button {
+      padding: 8px 16px;
+    }
+
+    .sidenav nav {
+      margin-top: 8rem;
+    }
+
+    .sidenav ul li a:hover, .sidenav ul li button:hover {
+      background:none;
+      color: #6bef78;
+    }
+    
+  }
   
 
   

@@ -1,11 +1,20 @@
 .chatcontainer {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
   background: url('/src/components/Assets/Loggedin.svg');
   background-size: cover;
   background-repeat: repeat-y;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+@media screen and (max-width: 768px) {
+  .chatcontainer {
+    background: url('/src/components/Assets/Loggedin.svg');
+    background-size: cover;
+    background-repeat: repeat-y;
+  }
+  
 }
