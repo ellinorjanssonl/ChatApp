@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as Sentry from "@sentry/react";
 import './Css/Register.css';
 
 const Register = ({ csrfToken }) => {
@@ -50,6 +51,7 @@ const Register = ({ csrfToken }) => {
 
       if (!res.ok) {
         throw new Error(data.message || 'username or email already exists');
+        
       }
 
       console.log('Registered successfully', data);
@@ -57,7 +59,7 @@ const Register = ({ csrfToken }) => {
       localStorage.setItem('username', username);
       localStorage.setItem('email', email);
       localStorage.setItem('avatar', avatar);
-      navigate('/login'); // Redirect to login page after successful registration
+      navigate('/login'); 
     })
     .catch(err => setError(err.message));
   };

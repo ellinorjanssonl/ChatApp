@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as Sentry from "@sentry/react";
 import './Css/Profile.css';
 
 const Profile = ({ token, setToken }) => {
@@ -42,6 +43,7 @@ const Profile = ({ token, setToken }) => {
         setUser(data[0]);  // Set user to the first element of the array
       } catch (err) {
         console.error('Error fetching user data:', err);
+        Sentry.captureException(err);
         setError('Failed to fetch user data');
       }
     };
@@ -88,10 +90,11 @@ const Profile = ({ token, setToken }) => {
       }
 
       console.log('User deleted successfully');
-      setToken(''); // Reset the token in the state
-      navigate('/login'); // Redirect to login page after deletion
+      setToken(''); 
+      navigate('/login'); 
     } catch (err) {
       console.error('Error deleting user:', err);
+      Sentry.captureException(err);
       setError('Failed to delete user');
     }
   };
@@ -116,9 +119,9 @@ const Profile = ({ token, setToken }) => {
       }
 
       console.log('User updated successfully');
-      const data = await res.json(); // Fetch updated user data from response
-      setUser((prevUser) => ({ ...prevUser, ...updatedData })); // Update local user state with new data
-      // Clear the form fields after successful update
+      const data = await res.json();
+      setUser((prevUser) => ({ ...prevUser, ...updatedData })); 
+     
       setNewAvatar('');
       setNewUsername('');
       setNewEmail('');

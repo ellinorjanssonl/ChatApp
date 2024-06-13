@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Css/Chat.css';
+import * as Sentry from "@sentry/react";
 
 const generateGUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -14,12 +15,15 @@ const sanitizeInput = (input) => {
   return temp.innerHTML;
 };
 
-const Chat = ({ token, userId, setToken }) => {
+const Chat = ({ token, setToken }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [error, setError] = useState('');
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
   const [conversationId, setConversationId] = useState(localStorage.getItem('conversationId') || generateGUID());
+  const [avatar, setAvatar] = useState(localStorage.getItem('avatar') || '');
+  const [username, setUsername] = useState(localStorage.getItem('username') || '');
+  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
     if (!token || !userId) {
@@ -58,6 +62,7 @@ const Chat = ({ token, userId, setToken }) => {
       setMessages(data);
     } catch (err) {
       console.error('Error fetching messages:', err);
+      Sentry.captureException(err); // Log error to Sentry
       setError('Failed to fetch messages');
     }
   };
@@ -96,6 +101,7 @@ const Chat = ({ token, userId, setToken }) => {
       setLastActivityTime(Date.now());
     } catch (err) {
       console.error('Error sending message:', err);
+      Sentry.captureException(err); // Log error to Sentry
       setError(`Failed to send message: ${err.message}`);
     }
   };
@@ -122,6 +128,7 @@ const Chat = ({ token, userId, setToken }) => {
       setLastActivityTime(Date.now());
     } catch (err) {
       console.error('Error deleting message:', err);
+      Sentry.captureException(err); // Log error to Sentry
       setError('Failed to delete message');
     }
   };
@@ -147,21 +154,29 @@ const Chat = ({ token, userId, setToken }) => {
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex items-start mb-4 ${message.userId === userId ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-start mb-4 ${message.userId.toString() === userId.toString() ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`p-4 rounded-lg ${message.userId === userId ? 'bg-blue-200' : 'bg-purple-200'}`}>
-                <div className="flex items-center mb-2">
-                  <span className="font-semibold">{message.userId === userId ? 'You' : 'Other'}</span>
-                  <span className="ml-2 text-xs text-gray-500">{new Date(message.createdAt).toLocaleTimeString()}</span>
+              <div className="flex items-center">
+                {message.userId.toString() !== userId.toString() && (
+                  <img src={message.avatar || 'default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full mr-2" />
+                )}
+                <div className={`p-4 rounded-lg ${message.userId.toString() === userId.toString() ? 'bg-blue-200' : 'bg-purple-200'}`}>
+                  <div className="flex items-center mb-2">
+                    <span className="font-semibold">{message.userId.toString() === userId.toString() ? username : message.username}</span>
+                    <span className="ml-2 text-xs text-gray-500">{new Date(message.createdAt).toLocaleTimeString()}</span>
+                  </div>
+                  <p>{message.text}</p>
+                  {message.userId.toString() === userId.toString() && (
+                    <button
+                      onClick={() => handleDeleteMessage(message.id)}
+                      className="mt-2 text-red-500 text-xs"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
-                <p>{message.text}</p>
-                {message.userId === userId && (
-                  <button
-                    onClick={() => handleDeleteMessage(message.id)}
-                    className="mt-2 text-red-500 text-xs"
-                  >
-                    Delete
-                  </button>
+                {message.userId.toString() === userId.toString() && (
+                  <img src={avatar} alt="avatar" className="w-8 h-8 rounded-full ml-2" />
                 )}
               </div>
             </div>
