@@ -1,11 +1,27 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background: url('/src/components/Assets/Loggedin.svg');
+  background-size: cover;
+  background-repeat: repeat-y;
+}
+
+.avatar {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  top: 1rem;
+  margin: 0 auto;
+  border: #f8d4ff 2px solid;
+}
+
 .chatcontainer {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
-  background: url('/src/components/Assets/Loggedin.svg');
-  background-size: cover;
-  background-repeat: repeat-y;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -20,13 +36,117 @@
   margin-right: 10px;
 }
 
+.user-list {
+  position: absolute;
+  right: 2rem;
+  top: 2rem;
+  min-width: 15rem;
+  background-color: rgba(215, 232, 255, 0.4);
+  backdrop-filter: blur(10px);
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  padding: 10px;
+}
+
+.user-list h3 {
+  margin: 0 auto;
+  justify-content: center;
+  text-align: center;
+  color: black;
+  margin-bottom: 10px;
+}
+
+.user-list ul {
+  max-height: 80vh;
+  overflow-y:scroll;
+  overflow-x: visible;
+  scrollbar-width: thin;
+  scrollbar-color: #a4caff #5d036e;
+  overflow-x: hidden;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-list ul::-webkit-scrollbar {
+  width: 8px;
+}
+
+.user-list ul::-webkit-scrollbar-track {
+  background-color: #a4caff;
+}
+
+.user-list ul::-webkit-scrollbar-thumb {
+  background-color: #5d036e;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.user-item img {
+  margin-right: 10px;
+}
+
+.user-item button {
+  margin-left: auto;
+  background-color: rgb(157, 216, 255);
+  color: black;
+}
+
+
 
 
 @media screen and (max-width: 768px) {
-  .chatcontainer {
-    background: url('/src/components/Assets/Loggedin.svg');
-    background-size: cover;
-    background-repeat: repeat-y;
+  .user-list::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid rgba(215, 232, 255, 0.4);
+  }
+
+  .user-list::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 10px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid white;
+  }
+
+  .user-list {
+    right: 1rem;
+    top: 1rem;
+  }
+
+  .user-list ul::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .user-list ul::-webkit-scrollbar-thumb {
+    background-color: #5d036e;
+  }
+
+  .user-list ul {
+    max-height: 50vh;
+  }
+
+  .user-list h3 {
+    font-size: 1.5rem;
+  }
+
+  .user-item button {
+    font-size: 1rem;
   }
   
 }

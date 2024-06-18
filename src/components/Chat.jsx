@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './Css/Chat.css';
 import * as Sentry from "@sentry/react";
+import icon from './Assets/icon.png'; // Import the default icon
 
 const generateGUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 8);
-    return v.toString(16);
-  });
+  return crypto.randomUUID();
 };
 
 const sanitizeInput = (input) => {
@@ -23,7 +21,9 @@ const Chat = ({ token, setToken }) => {
   const [conversationId, setConversationId] = useState(localStorage.getItem('conversationId') || generateGUID());
   const [avatar, setAvatar] = useState(localStorage.getItem('avatar') || '');
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
+  const [users, setUsers] = useState([]);
   const userId = localStorage.getItem('userId');
+
 
   useEffect(() => {
     if (!token || !userId) {
@@ -32,40 +32,68 @@ const Chat = ({ token, setToken }) => {
       return;
     }
 
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch('https://chatify-api.up.railway.app/users', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to fetch users');
+        }
+
+        const data = await res.json();
+        console.log('Fetched users:', data);
+
+        // Sort users alphabetically by username
+        const sortedUsers = data.sort((a, b) => a.username.localeCompare(b.username));
+        setUsers(sortedUsers);
+      } catch (err) {
+        console.error('Error fetching users:', err);
+        Sentry.captureException(err);
+        setError('Failed to fetch users');
+      }
+    };
+
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch(`https://chatify-api.up.railway.app/messages`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to fetch messages');
+        }
+
+        const data = await res.json();
+        console.log('Fetched messages:', data);
+        setMessages(data);
+      } catch (err) {
+        console.error('Error fetching messages:', err);
+        Sentry.captureException(err); // Log error to Sentry
+        setError('Failed to fetch messages');
+      }
+    };
+
+    fetchUsers();
     fetchMessages();
 
     const interval = setInterval(() => {
       if (Date.now() - lastActivityTime > 20 * 60 * 1000) {
-        setToken(''); // Logga ut användaren
+        setToken(''); // Log out the user
       }
     }, 60 * 1000);
 
     return () => clearInterval(interval);
   }, [token, userId, lastActivityTime, setToken]);
-
-  const fetchMessages = async () => {
-    try {
-      const res = await fetch(`https://chatify-api.up.railway.app/messages`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to fetch messages');
-      }
-
-      const data = await res.json();
-      console.log('Fetched messages:', data);
-      setMessages(data);
-    } catch (err) {
-      console.error('Error fetching messages:', err);
-      Sentry.captureException(err); // Log error to Sentry
-      setError('Failed to fetch messages');
-    }
-  };
 
   const handleSendMessage = async () => {
     const sanitizedMessage = sanitizeInput(newMessage);
@@ -133,40 +161,61 @@ const Chat = ({ token, setToken }) => {
     }
   };
 
-  const handleConversationChange = () => {
-    const newConversationId = generateGUID();
-    setConversationId(newConversationId);
-    localStorage.setItem('conversationId', newConversationId);
-    setMessages([]);
-    fetchMessages();
-    setLastActivityTime(Date.now());
+  const handleInviteUser = async (userId) => {
+    try {
+      const res = await fetch(`https://chatify-api.up.railway.app/invite/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversationId, // Include conversationId in the request body
+        }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || 'Failed to invite user');
+      }
+
+      const data = await res.json();
+      console.log('Invited user:', data);
+      alert(`User ${userId} invited successfully`);
+    } catch (err) {
+      console.error('Error inviting user:', err);
+      Sentry.captureException(err);
+      setError('Failed to invite user');
+    }
   };
 
   return (
     <div className="chatcontainer">
       <div className="flex flex-col items-center p-4">
         <div className="mb-4">
-          <button onClick={handleConversationChange} className="px-4 py-2 bg-purple-600 text-white rounded">
-            Start New Conversation
-          </button>
         </div>
         <div className="w-full max-w-lg mb-4">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex items-start mb-4 ${message.userId.toString() === userId.toString() ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-start mb-4 ${message.userId?.toString() === userId?.toString() ? 'justify-end' : 'justify-start'}`}
             >
               <div className="flex items-center">
-                {message.userId.toString() !== userId.toString() && (
-                  <img src={message.avatar || 'default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full mr-2" />
+                {message.userId?.toString() !== userId?.toString() && (
+                  <img
+                    src={message.avatar || icon}
+                    alt="avatar"
+                    className="w-10 h-10 rounded-full mr-2"
+                    onError={(e) => { e.target.onerror = null; e.target.src = icon; }} // Set default icon on error
+                  />
                 )}
-                <div className={`p-4 rounded-lg ${message.userId.toString() === userId.toString() ? 'bg-blue-200' : 'bg-purple-200'}`}>
+                <div className={`p-4 rounded-lg ${message.userId?.toString() === userId?.toString() ? 'bg-blue-200' : 'bg-purple-200'}`}>
                   <div className="flex items-center mb-2">
-                    <span className="font-semibold">{message.userId.toString() === userId.toString() ? username : message.username}</span>
+                    <span className="font-semibold">{message.userId?.toString() === userId?.toString() ? username : message.username}</span>
                     <span className="ml-2 text-xs text-gray-500">{new Date(message.createdAt).toLocaleTimeString()}</span>
                   </div>
                   <p>{message.text}</p>
-                  {message.userId.toString() === userId.toString() && (
+                  {message.userId?.toString() === userId?.toString() && (
                     <button
                       onClick={() => handleDeleteMessage(message.id)}
                       className="mt-2 text-red-500 text-xs"
@@ -175,8 +224,13 @@ const Chat = ({ token, setToken }) => {
                     </button>
                   )}
                 </div>
-                {message.userId.toString() === userId.toString() && (
-                  <img src={avatar} alt="avatar" className="w-8 h-8 rounded-full ml-2" />
+                {message.userId?.toString() === userId?.toString() && (
+                  <img
+                    src={avatar || icon}
+                    alt="avatar"
+                    className="w-8 h-8 rounded-full ml-2"
+                    onError={(e) => { e.target.onerror = null; e.target.src = icon; }} // Set default icon on error
+                  />
                 )}
               </div>
             </div>
@@ -198,6 +252,25 @@ const Chat = ({ token, setToken }) => {
           </button>
         </div>
         {error && <p className="text-red-500 mt-4">{error}</p>}
+      </div>
+      <div className="user-list">
+        <h3>Users</h3>
+        <ul>
+          {users.map((user) => (
+            <li key={user.userId} className="user-item">
+              <img
+                src={user.avatar || 'default-avatar.png'}
+                alt="avatar"
+                className="w-10 h-10 rounded-full mr-2"
+                onError={(e) => { e.target.onerror = null; e.target.src = icon; }} // Set default icon on error
+              />
+              <span>{user.username}</span>
+              <button onClick={() => handleInviteUser(user.userId)} className="ml-2 px-2 py-1 bg-blue-500 text-white rounded">
+                Invite
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

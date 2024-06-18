@@ -14,6 +14,9 @@ const Profile = ({ token, setToken }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); 
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
+  
+  
+
 
   useEffect(() => {
     if (!token || !userId) {
@@ -54,7 +57,7 @@ const Profile = ({ token, setToken }) => {
   const getRandomAvatars = () => {
     let randomAvatars = [];
     while (randomAvatars.length < 10) {
-      const randomId = Math.floor(Math.random() * 70) + 1; // Generate random ID between 1 and 70
+      const randomId = Math.floor(Math.random() * 70) + 1; 
       const avatarUrl = `https://i.pravatar.cc/200?img=${randomId}`;
       if (!randomAvatars.includes(avatarUrl)) {
         randomAvatars.push(avatarUrl);

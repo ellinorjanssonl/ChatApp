@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as Sentry from "@sentry/react";
 import './Css/Register.css';
 
 const Register = ({ csrfToken }) => {
@@ -20,7 +19,7 @@ const Register = ({ csrfToken }) => {
   const getRandomAvatars = () => {
     let randomAvatars = [];
     while (randomAvatars.length < 10) {
-      const randomId = Math.floor(Math.random() * 70) + 1; // Generate random ID between 1 and 70
+      const randomId = Math.floor(Math.random() * 70) + 1; 
       const avatarUrl = `https://i.pravatar.cc/200?img=${randomId}`;
       if (!randomAvatars.includes(avatarUrl)) {
         randomAvatars.push(avatarUrl);
