@@ -18,6 +18,7 @@ body {
 }
 
 .chatcontainer {
+  margin-top: 1rem;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -25,7 +26,8 @@ body {
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
- .avatarchat {
+
+.avatarchat {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -36,7 +38,17 @@ body {
   margin-right: 10px;
 }
 
+.inputarea {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: rgba(206, 230, 255, 0.9);
+  border-radius: 15px;
+}
+
 .user-list {
+  margin-top: 1rem;
   position: absolute;
   right: 2rem;
   top: 2rem;
@@ -58,7 +70,7 @@ body {
 
 .user-list ul {
   max-height: 80vh;
-  overflow-y:scroll;
+  overflow-y: scroll;
   overflow-x: visible;
   scrollbar-width: thin;
   scrollbar-color: #a4caff #5d036e;
@@ -96,57 +108,53 @@ body {
   color: black;
 }
 
-
-
+.chatbubbles {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  height: 100%;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  border-bottom-left-radius: 15px;
+  color: rgb(28, 7, 33);
+  background-color: rgba(206, 230, 255, 0.9);
+  box-shadow: 0 1px 10px rgba(28, 1, 32, 0.7);
+}
 
 @media screen and (max-width: 768px) {
-  .user-list::before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    right: 10px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid rgba(215, 232, 255, 0.4);
-  }
-
-  .user-list::after {
-    content: '';
-    position: absolute;
-    top: -8px;
-    right: 10px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid white;
-  }
-
   .user-list {
-    right: 1rem;
-    top: 1rem;
-  }
-
-  .user-list ul::-webkit-scrollbar {
-    width: 5px;
-  }
-
-  .user-list ul::-webkit-scrollbar-thumb {
-    background-color: #5d036e;
+    margin-top: 5rem;
+    position: relative;
+    right: auto;
+    top: auto;
+    width: 100%;
+    min-width: auto;
+    background-color: rgba(215, 232, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    padding: 1rem;
+    margin-bottom: 1rem;
   }
 
   .user-list ul {
-    max-height: 50vh;
+    display: flex;
+    flex-direction: row;
+    max-height: none;
+    overflow-y: hidden;
+    overflow-x: scroll;
   }
 
-  .user-list h3 {
-    font-size: 1.5rem;
+  .user-list ul::-webkit-scrollbar {
+    height: 8px;
+    width: auto;
   }
 
-  .user-item button {
-    font-size: 1rem;
+  .user-item {
+    flex: 0 0 auto;
+    margin-right: 10px;
+    margin-bottom: 0;
   }
-  
 }

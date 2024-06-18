@@ -24,14 +24,36 @@ const Chat = ({ token, setToken }) => {
   const [users, setUsers] = useState([]);
   const userId = localStorage.getItem('userId');
 
+  useEffect(() => {
+    const fetchConversation = async () => {
+      try {
+        const res = await fetch('https://chatify-api.up.railway.app/messages?conversationId=d29efd00-5280-4be6-b995-e404bebaff7b', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to fetch conversation');
+        }
+
+        const data = await res.json();
+        console.log('Fetched conversation:', data);
+      } catch (err) {
+        console.error('Error fetching conversation:', err);
+        Sentry.captureException(err);
+        setError('Failed to fetch conversation');
+      }
+    };
+
+    fetchConversation();
+  }, [token, conversationId]);
+
+
 
   useEffect(() => {
-    if (!token || !userId) {
-      console.log('Missing token or userId:', { token, userId });
-      setError('Missing Auth token or User ID');
-      return;
-    }
-
     const fetchUsers = async () => {
       try {
         const res = await fetch('https://chatify-api.up.railway.app/users', {
@@ -170,7 +192,7 @@ const Chat = ({ token, setToken }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          conversationId, // Include conversationId in the request body
+          conversationId, 
         }),
       });
 
@@ -191,6 +213,25 @@ const Chat = ({ token, setToken }) => {
 
   return (
     <div className="chatcontainer">
+            <div className="user-list">
+        <h3>Users</h3>
+        <ul>
+          {users.map((user) => (
+            <li key={user.userId} className="user-item">
+              <img
+                src={user.avatar || 'default-avatar.png'}
+                alt="avatar"
+                className="w-10 h-10 rounded-full mr-2"
+                onError={(e) => { e.target.onerror = null; e.target.src = icon; }} // Set default icon on error
+              />
+              <span>{user.username}</span>
+              <button onClick={() => handleInviteUser(user.userId)} className="ml-2 px-2 py-1 bg-blue-500 text-white rounded">
+                Invite
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
       <div className="flex flex-col items-center p-4">
         <div className="mb-4">
         </div>
@@ -206,10 +247,10 @@ const Chat = ({ token, setToken }) => {
                     src={message.avatar || icon}
                     alt="avatar"
                     className="w-10 h-10 rounded-full mr-2"
-                    onError={(e) => { e.target.onerror = null; e.target.src = icon; }} // Set default icon on error
+                    onError={(e) => { e.target.onerror = null; e.target.src = icon; }} 
                   />
                 )}
-                <div className={`p-4 rounded-lg ${message.userId?.toString() === userId?.toString() ? 'bg-blue-200' : 'bg-purple-200'}`}>
+                <div className={`chatbubbles ${message.userId?.toString() === userId?.toString() ? 'bg-blue-200' : 'bg-purple-200'}`}>
                   <div className="flex items-center mb-2">
                     <span className="font-semibold">{message.userId?.toString() === userId?.toString() ? username : message.username}</span>
                     <span className="ml-2 text-xs text-gray-500">{new Date(message.createdAt).toLocaleTimeString()}</span>
@@ -242,7 +283,7 @@ const Chat = ({ token, setToken }) => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 p-2 border border-gray-300 rounded-l"
+            className="inputarea p-2 w-full rounded-l"
           />
           <button
             onClick={handleSendMessage}
@@ -253,25 +294,7 @@ const Chat = ({ token, setToken }) => {
         </div>
         {error && <p className="text-red-500 mt-4">{error}</p>}
       </div>
-      <div className="user-list">
-        <h3>Users</h3>
-        <ul>
-          {users.map((user) => (
-            <li key={user.userId} className="user-item">
-              <img
-                src={user.avatar || 'default-avatar.png'}
-                alt="avatar"
-                className="w-10 h-10 rounded-full mr-2"
-                onError={(e) => { e.target.onerror = null; e.target.src = icon; }} // Set default icon on error
-              />
-              <span>{user.username}</span>
-              <button onClick={() => handleInviteUser(user.userId)} className="ml-2 px-2 py-1 bg-blue-500 text-white rounded">
-                Invite
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+
     </div>
   );
 };
