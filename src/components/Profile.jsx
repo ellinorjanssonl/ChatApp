@@ -142,6 +142,7 @@ const Profile = ({ token, setToken }) => {
     return <p className="error-message">{error}</p>;
   }
 
+
   return (
     <div className="profile-container">
       <div className="profile-info">

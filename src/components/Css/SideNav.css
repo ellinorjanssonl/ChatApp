@@ -45,6 +45,7 @@
   .sidenav ul li a, .sidenav ul li button {
     text-decoration: none;
     color: white;
+    font-weight: light;
     display: block;
     width: 100%;
     text-align: left;
