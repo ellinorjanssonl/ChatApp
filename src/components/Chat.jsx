@@ -21,9 +21,10 @@ const Chat = ({ token, setToken }) => {
   const [avatar, setAvatar] = useState(localStorage.getItem('avatar') || '');
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
   const [users, setUsers] = useState([]);
+  const [usersInConvo, setUsersInConvo] = useState([]);
   const userId = localStorage.getItem('userId');
 
-//recevet
+  // hämtar användare när komponenten laddas
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -41,16 +42,19 @@ const Chat = ({ token, setToken }) => {
 
         const data = await res.json();
         console.log('Fetched users:', data);
-
-        // Sort users alphabetically by username
-        const sortedUsers = data.sort((a, b) => a.username.localeCompare(b.username));
-        setUsers(sortedUsers);
+        setUsers(data);
       } catch (err) {
         console.error('Error fetching users:', err);
         setError('Failed to fetch users');
       }
     };
 
+    fetchUsers();
+  }, [token]); // hämtar användare när token ändras
+
+  // hämtar bara meddelanden om det finns användare
+  useEffect(() => {
+    if (users.length === 0) return; //Hämtar inte ut meddelanden om det inte finns några användare
 
     const fetchMessages = async () => {
       try {
@@ -69,23 +73,30 @@ const Chat = ({ token, setToken }) => {
         const data = await res.json();
         console.log('Fetched messages:', data);
         setMessages(data);
+
+       // hämtar ut användare som är inblandade i konversationen 
+        const involvedUsers = data.map(msg => msg.userId).filter((v, i, a) => a.indexOf(v) === i); //när man har unika userID
+        const usersInvolved = users.filter(user => involvedUsers.includes(user.userId));
+        setUsersInConvo(usersInvolved);
       } catch (err) {
         console.error('Error fetching messages:', err);
         setError('Failed to fetch messages');
       }
     };
 
-    fetchUsers();
     fetchMessages();
+  }, [conversationId, users, token]); 
 
+  // loggar ut användaren efter 20 minuter
+  useEffect(() => {
     const interval = setInterval(() => {
       if (Date.now() - lastActivityTime > 20 * 60 * 1000) {
-        setToken(''); // Log out the user
+        setToken(''); 
       }
     }, 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [token, userId, lastActivityTime, setToken, conversationId]);
+  }, [lastActivityTime, setToken]);
 
   const handleSendMessage = async () => {
     const sanitizedMessage = sanitizeInput(newMessage);
@@ -178,19 +189,37 @@ const Chat = ({ token, setToken }) => {
     }
   };
 
+  const search = (e) => {
+    const searchValue = e.target.value.toLowerCase();
+    const filteredUsers = users.filter(user => user.username.toLowerCase().includes(searchValue));
+    setUsers(filteredUsers);
+  };
+
+  const getUserInfo = (userId) => {
+    const user = usersInConvo.find(u => u.userId === userId);
+    return user || { username: 'Unknown', avatar: icon };
+  };
 
   return (
     <div className="chatcontainer">
       <div className="user-list">
         <h3>Users</h3>
+        <div className="divider">
+          <input
+            type="text"
+            placeholder="Search users..."
+            onChange={search}
+            className="p-2 w-full rounded"
+          />
+        </div>
         <ul>
           {users.map((user) => (
             <li key={user.userId} className="user-item">
               <img
                 src={user.avatar || 'default-avatar.png'}
                 alt="avatar"
-                className="w-10 h-10 rounded-full mr-2"
-                onError={(e) => { e.target.onerror = null; e.target.src = icon; }} // Set default icon on error
+                className="w-8 h-8 rounded-full mr-2"
+                onError={(e) => { e.target.onerror = null; e.target.src = icon; }} 
               />
               <span>{user.username}</span>
               <button onClick={() => handleInviteUser(user.userId)} className="ml-2 px-2 py-1 bg-blue-500 text-white rounded">
@@ -200,49 +229,53 @@ const Chat = ({ token, setToken }) => {
           ))}
         </ul>
       </div>
-         <div className="flex flex-col items-center p-4">
-        <div className="mb-4"></div>
-        <div className="w-full max-w-lg mb-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex items-start mb-4 ${message.userId?.toString() === userId?.toString() ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className="flex items-center">
-                {message.userId?.toString() !== userId?.toString() && (
-                  <img
-                    src={message.avatar || icon}
-                    alt="avatar"
-                    className="w-10 h-10 rounded-full mr-2"
-                    onError={(e) => { e.target.onerror = null; e.target.src = icon; }}
-                  />
-                )}
-                <div className={`chatbubbles ${message.userId?.toString() === userId?.toString() ? 'bg-blue-200' : 'bg-purple-200'}`}>
-                  <div className="flex items-center mb-2">
-                    <span className="font-semibold">{message.userId?.toString() === userId?.toString() ? username : message.username}</span>
-                    <span className="ml-2 text-xs text-gray-500">{new Date(message.createdAt).toLocaleTimeString()}</span>
+      <div className="flex flex-col items-center p-4">
+        <div className="mb-4">
+        </div>
+        <div className="w-full max-w-lg mb-4">  {/* hämtar ut användare som inte är den inloggade*/}
+          {messages.map((message) => {
+            const { username, avatar } = getUserInfo(message.userId);
+            return (
+              <div
+                key={message.id}
+                className={`flex items-start mb-4 ${message.userId?.toString() === userId?.toString() ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className="flex items-center">
+                  {message.userId?.toString() !== userId?.toString() && (
+                    <img
+                      src={avatar}
+                      alt="avatar"
+                      className="w-10 h-10 rounded-full mr-2"
+                      onError={(e) => { e.target.onerror = null; e.target.src = icon; }}
+                    />
+                  )}
+                  <div className={`chatbubbles ${message.userId?.toString() === userId?.toString() ? 'bg-blue-200' : 'bg-purple-200'}`}>
+                    <div className="flex items-center mb-2">
+                    <span className="font-semibold">{username}</span>
+                      <span className="ml-2 text-xs text-gray-500">{new Date(message.createdAt).toLocaleTimeString()}</span>
+                    </div>
+                    <p>{message.text}</p>
+                    {message.userId?.toString() === userId?.toString() && (
+                      <button
+                        onClick={() => handleDeleteMessage(message.id)}
+                        className="mt-2 text-red-500 text-xs"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
-                  <p>{message.text}</p>
                   {message.userId?.toString() === userId?.toString() && (
-                    <button
-                      onClick={() => handleDeleteMessage(message.id)}
-                      className="mt-2 text-red-500 text-xs"
-                    >
-                      Delete
-                    </button>
+                    <img
+                      src={avatar}
+                      alt="avatar"
+                      className="w-10 h-10 rounded-full ml-2"
+                      onError={(e) => { e.target.onerror = null; e.target.src = icon; }}
+                    />
                   )}
                 </div>
-                {message.userId?.toString() === userId?.toString() && (
-                  <img
-                    src={avatar || icon}
-                    alt="avatar"
-                    className="w-8 h-8 rounded-full ml-2"
-                    onError={(e) => { e.target.onerror = null; e.target.src = icon; }}
-                  />
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="w-full max-w-lg flex">
           <input
@@ -254,7 +287,7 @@ const Chat = ({ token, setToken }) => {
           />
           <button
             onClick={handleSendMessage}
-            className="p-2 bg-purple-800 text-white rounded-r"
+            className="p-2 bg-pink-600 text-white rounded"
           >
             Send
           </button>

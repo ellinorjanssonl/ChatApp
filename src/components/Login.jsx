@@ -24,23 +24,18 @@ const Login = ({ setToken, setUserId, csrfToken }) => {
       }),
    
     })
-    .then(async res => {
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text);
-      }
-      return res.json();
-    })
+    .then(res => res.json())
     .then(data => {
       const { token } = data;
       const decodedToken = parseJwt(token);
-      const { id: userId, user, avatar, email } = decodedToken;
+      const { id: userId, user, avatar, email, invite } = decodedToken;
 
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId);
       localStorage.setItem('username', user);
       localStorage.setItem('avatar', avatar);
       localStorage.setItem('email', email);
+      localStorage.setItem('invite', invite);
       setToken(token);
       setUserId(userId);
       setSuccess('Login successful');
