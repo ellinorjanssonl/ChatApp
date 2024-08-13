@@ -203,7 +203,6 @@ const Chat = ({ token, setToken }) => {
   return (
     <div className="chatcontainer">
       <div className="user-list">
-        <h3>Users</h3>
         <div className="divider">
           <input
             type="text"
