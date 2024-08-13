@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './Css/Chat.css';
-import * as Sentry from "@sentry/react";
 import icon from './Assets/icon.png'; // Import the default icon
 
 const generateGUID = () => {
@@ -24,35 +23,7 @@ const Chat = ({ token, setToken }) => {
   const [users, setUsers] = useState([]);
   const userId = localStorage.getItem('userId');
 
-  useEffect(() => {
-    const fetchConversation = async () => {
-      try {
-        const res = await fetch('https://chatify-api.up.railway.app/messages?conversationId=d29efd00-5280-4be6-b995-e404bebaff7b', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!res.ok) {
-          throw new Error('Failed to fetch conversation');
-        }
-
-        const data = await res.json();
-        console.log('Fetched conversation:', data);
-      } catch (err) {
-        console.error('Error fetching conversation:', err);
-        Sentry.captureException(err);
-        setError('Failed to fetch conversation');
-      }
-    };
-
-    fetchConversation();
-  }, [token, conversationId]);
-
-
-
+//recevet
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -76,14 +47,14 @@ const Chat = ({ token, setToken }) => {
         setUsers(sortedUsers);
       } catch (err) {
         console.error('Error fetching users:', err);
-        Sentry.captureException(err);
         setError('Failed to fetch users');
       }
     };
 
+
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`https://chatify-api.up.railway.app/messages`, {
+        const res = await fetch(`https://chatify-api.up.railway.app/messages?conversationId=${conversationId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -100,7 +71,6 @@ const Chat = ({ token, setToken }) => {
         setMessages(data);
       } catch (err) {
         console.error('Error fetching messages:', err);
-        Sentry.captureException(err); // Log error to Sentry
         setError('Failed to fetch messages');
       }
     };
@@ -115,7 +85,7 @@ const Chat = ({ token, setToken }) => {
     }, 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [token, userId, lastActivityTime, setToken]);
+  }, [token, userId, lastActivityTime, setToken, conversationId]);
 
   const handleSendMessage = async () => {
     const sanitizedMessage = sanitizeInput(newMessage);
@@ -151,7 +121,6 @@ const Chat = ({ token, setToken }) => {
       setLastActivityTime(Date.now());
     } catch (err) {
       console.error('Error sending message:', err);
-      Sentry.captureException(err); // Log error to Sentry
       setError(`Failed to send message: ${err.message}`);
     }
   };
@@ -178,7 +147,6 @@ const Chat = ({ token, setToken }) => {
       setLastActivityTime(Date.now());
     } catch (err) {
       console.error('Error deleting message:', err);
-      Sentry.captureException(err); // Log error to Sentry
       setError('Failed to delete message');
     }
   };
@@ -206,14 +174,14 @@ const Chat = ({ token, setToken }) => {
       alert(`User ${userId} invited successfully`);
     } catch (err) {
       console.error('Error inviting user:', err);
-      Sentry.captureException(err);
       setError('Failed to invite user');
     }
   };
 
+
   return (
     <div className="chatcontainer">
-            <div className="user-list">
+      <div className="user-list">
         <h3>Users</h3>
         <ul>
           {users.map((user) => (
@@ -232,9 +200,8 @@ const Chat = ({ token, setToken }) => {
           ))}
         </ul>
       </div>
-      <div className="flex flex-col items-center p-4">
-        <div className="mb-4">
-        </div>
+         <div className="flex flex-col items-center p-4">
+        <div className="mb-4"></div>
         <div className="w-full max-w-lg mb-4">
           {messages.map((message) => (
             <div
@@ -247,7 +214,7 @@ const Chat = ({ token, setToken }) => {
                     src={message.avatar || icon}
                     alt="avatar"
                     className="w-10 h-10 rounded-full mr-2"
-                    onError={(e) => { e.target.onerror = null; e.target.src = icon; }} 
+                    onError={(e) => { e.target.onerror = null; e.target.src = icon; }}
                   />
                 )}
                 <div className={`chatbubbles ${message.userId?.toString() === userId?.toString() ? 'bg-blue-200' : 'bg-purple-200'}`}>
@@ -270,7 +237,7 @@ const Chat = ({ token, setToken }) => {
                     src={avatar || icon}
                     alt="avatar"
                     className="w-8 h-8 rounded-full ml-2"
-                    onError={(e) => { e.target.onerror = null; e.target.src = icon; }} // Set default icon on error
+                    onError={(e) => { e.target.onerror = null; e.target.src = icon; }}
                   />
                 )}
               </div>
@@ -294,7 +261,6 @@ const Chat = ({ token, setToken }) => {
         </div>
         {error && <p className="text-red-500 mt-4">{error}</p>}
       </div>
-
     </div>
   );
 };

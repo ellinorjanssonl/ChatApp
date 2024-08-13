@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as Sentry from "@sentry/react";
 import './Css/Profile.css';
 
 const Profile = ({ token, setToken }) => {
@@ -16,8 +15,6 @@ const Profile = ({ token, setToken }) => {
   const userId = localStorage.getItem('userId');
   
   
-
-
   useEffect(() => {
     if (!token || !userId) {
       console.log('Missing token or userId:', { token, userId });
@@ -46,7 +43,6 @@ const Profile = ({ token, setToken }) => {
         setUser(data[0]);  // Set user to the first element of the array
       } catch (err) {
         console.error('Error fetching user data:', err);
-        Sentry.captureException(err);
         setError('Failed to fetch user data');
       }
     };
@@ -97,7 +93,6 @@ const Profile = ({ token, setToken }) => {
       navigate('/login'); 
     } catch (err) {
       console.error('Error deleting user:', err);
-      Sentry.captureException(err);
       setError('Failed to delete user');
     }
   };

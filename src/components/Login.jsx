@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as Sentry from "@sentry/react";
 import './Css/Login.css';
 
 const Login = ({ setToken, setUserId, csrfToken }) => {
@@ -53,7 +52,6 @@ const Login = ({ setToken, setUserId, csrfToken }) => {
     })
     .catch(err => {
       console.error('Failed to login:', err);
-      Sentry.captureException(err); // Log error to Sentry
       setError('Invalid credentials');
       setSuccess('');
     });
@@ -69,7 +67,6 @@ const Login = ({ setToken, setUserId, csrfToken }) => {
       return JSON.parse(jsonPayload);
     } catch (e) {
       console.error('Invalid token', e);
-      Sentry.captureException(err); // Log error to Sentry
       return null;
     }
   }
