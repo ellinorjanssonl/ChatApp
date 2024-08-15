@@ -23,7 +23,6 @@ const Chat = ({ token, setToken }) => {
   const [avatar, setAvatar] = useState(localStorage.getItem('avatar') || '');
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
   const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
-  const [text , setText] = useState(localStorage.getItem('text') || '');
   const [users, setUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]); // Alla användare som laddas in
   const [searchValue, setSearchValue] = useState(''); 
@@ -104,7 +103,7 @@ const Chat = ({ token, setToken }) => {
 
   const handleSendMessage = async () => {
     const sanitizedMessage = sanitizeInput(newMessage);
-
+  
     try {
       const res = await fetch('https://chatify-api.up.railway.app/messages', {
         method: 'POST',
@@ -117,30 +116,34 @@ const Chat = ({ token, setToken }) => {
           conversationId: activeConversation,
         }),
       });
-
+  
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(errorText || 'Failed to send message');
       }
-
-      const message = await res.json();
-
-      const updatedMessage = {
-        ...message,
-        text:text,
-        userId: userId,
-        username: username,
-        avatar: avatar,
-      };
-
-      setMessages([...messages, updatedMessage]);
-      setNewMessage('');
-      setLastActivityTime(new Date().toLocaleTimeString());
+  
+      const data = await res.json();
+      const latestMessage = data.latestMessage; 
+  
+      
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          ...latestMessage,
+          userId: userId, 
+          username: username, 
+          avatar: avatar, 
+        },
+      ]);
+  
+      setNewMessage(''); 
+      setLastActivityTime(new Date().toLocaleTimeString()); 
     } catch (err) {
       console.error('Error sending message:', err);
       setError(`Failed to send message: ${err.message}`);
     }
   };
+
 
   const handleDeleteMessage = async (msgId) => {
     try {
@@ -269,7 +272,7 @@ const Chat = ({ token, setToken }) => {
         </h2>
         <div className="w-full max-w-lg mb-4">
           {messages.map((message, index) => {
-            const { username, avatar, text } = getUserInfo(message.userId);
+            const { username, avatar } = getUserInfo(message.userId);
             const isCurrentUser = message.userId?.toString() === userId?.toString();
             return (
               <div
