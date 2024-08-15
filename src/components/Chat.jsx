@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Css/Chat.css';
 import icon from './Assets/icon.png'; // Import the default icon
+import * as Sentry from '@sentry/react';
+import InvitesList from './Invites';
 
 const generateGUID = () => {
   return crypto.randomUUID();
@@ -16,22 +18,27 @@ const Chat = ({ token, setToken }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [error, setError] = useState('');
-  const [lastActivityTime, setLastActivityTime] = useState(Date.now());
+  const [lastActivityTime, setLastActivityTime] = useState(new Date().toLocaleTimeString());
   const [conversationId, setConversationId] = useState(localStorage.getItem('conversationId') || generateGUID());
   const [avatar, setAvatar] = useState(localStorage.getItem('avatar') || '');
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
+  const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
+  const [text , setText] = useState(localStorage.getItem('text') || '');
   const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]); // Alla användare som laddas in
+  const [searchValue, setSearchValue] = useState(''); 
   const [usersInConvo, setUsersInConvo] = useState([]);
-  const userId = localStorage.getItem('userId');
+  const [invited, setInvited] = useState([]);
+  const [conversations, setConversations] = useState([]); // Ny state för att hantera alla konversationer
+  const [activeConversation, setActiveConversation] = useState(conversationId); // Ny state för aktiv konversation
 
-  // hämtar användare när komponenten laddas
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await fetch('https://chatify-api.up.railway.app/users', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
@@ -41,8 +48,8 @@ const Chat = ({ token, setToken }) => {
         }
 
         const data = await res.json();
-        console.log('Fetched users:', data);
-        setUsers(data);
+        setAllUsers(data); // Spara alla användare
+        setUsers(data); // Sätt initialt visade användare
       } catch (err) {
         console.error('Error fetching users:', err);
         setError('Failed to fetch users');
@@ -50,18 +57,18 @@ const Chat = ({ token, setToken }) => {
     };
 
     fetchUsers();
-  }, [token]); // hämtar användare när token ändras
+  }, [token]);
 
-  // hämtar bara meddelanden om det finns användare
+  // Hämtar meddelanden när användare finns och aktiv konversation ändras
   useEffect(() => {
-    if (users.length === 0) return; //Hämtar inte ut meddelanden om det inte finns några användare
+    if (users.length === 0) return;
 
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`https://chatify-api.up.railway.app/messages?conversationId=${conversationId}`, {
+        const res = await fetch(`https://chatify-api.up.railway.app/messages?conversationId=${activeConversation}`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
@@ -71,13 +78,21 @@ const Chat = ({ token, setToken }) => {
         }
 
         const data = await res.json();
-        console.log('Fetched messages:', data);
         setMessages(data);
 
-       // hämtar ut användare som är inblandade i konversationen 
-        const involvedUsers = data.map(msg => msg.userId).filter((v, i, a) => a.indexOf(v) === i); //när man har unika userID
-        const usersInvolved = users.filter(user => involvedUsers.includes(user.userId));
+        // Uppdaterar användare som är inblandade i konversationen
+        const involvedUsers = data.map((msg) => msg.userId).filter((v, i, a) => a.indexOf(v) === i); // Unika userID
+        const usersInvolved = users.filter((user) => involvedUsers.includes(user.userId));
         setUsersInConvo(usersInvolved);
+
+        // Lägg till konversationen i listan om den inte redan finns
+        if (!conversations.some((convo) => convo.id === activeConversation)) {
+          const newConversation = {
+            id: activeConversation,
+            name: usersInvolved.map((user) => user.username).join(', ') || 'Unknown',
+          };
+          setConversations([...conversations, newConversation]);
+        }
       } catch (err) {
         console.error('Error fetching messages:', err);
         setError('Failed to fetch messages');
@@ -85,38 +100,21 @@ const Chat = ({ token, setToken }) => {
     };
 
     fetchMessages();
-  }, [conversationId, users, token]); 
-
-  // loggar ut användaren efter 20 minuter
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Date.now() - lastActivityTime > 20 * 60 * 1000) {
-        setToken(''); 
-      }
-    }, 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [lastActivityTime, setToken]);
+  }, [activeConversation, users, token]);
 
   const handleSendMessage = async () => {
     const sanitizedMessage = sanitizeInput(newMessage);
 
     try {
-      console.log('Sending message with:', {
-        text: sanitizedMessage,
-        conversationId,
-        token,
-      });
-
       const res = await fetch('https://chatify-api.up.railway.app/messages', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           text: sanitizedMessage,
-          conversationId,
+          conversationId: activeConversation,
         }),
       });
 
@@ -126,10 +124,18 @@ const Chat = ({ token, setToken }) => {
       }
 
       const message = await res.json();
-      console.log('Sent message:', message);
-      setMessages([...messages, message]);
+
+      const updatedMessage = {
+        ...message,
+        text:text,
+        userId: userId,
+        username: username,
+        avatar: avatar,
+      };
+
+      setMessages([...messages, updatedMessage]);
       setNewMessage('');
-      setLastActivityTime(Date.now());
+      setLastActivityTime(new Date().toLocaleTimeString());
     } catch (err) {
       console.error('Error sending message:', err);
       setError(`Failed to send message: ${err.message}`);
@@ -138,12 +144,10 @@ const Chat = ({ token, setToken }) => {
 
   const handleDeleteMessage = async (msgId) => {
     try {
-      console.log('Deleting message with id:', msgId);
-
       const res = await fetch(`https://chatify-api.up.railway.app/messages/${msgId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -153,8 +157,7 @@ const Chat = ({ token, setToken }) => {
         throw new Error(errorText || 'Failed to delete message');
       }
 
-      console.log('Deleted message with id:', msgId);
-      setMessages(messages.filter(message => message.id !== msgId));
+      setMessages(messages.filter((message) => message.id !== msgId));
       setLastActivityTime(Date.now());
     } catch (err) {
       console.error('Error deleting message:', err);
@@ -167,11 +170,11 @@ const Chat = ({ token, setToken }) => {
       const res = await fetch(`https://chatify-api.up.railway.app/invite/${userId}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          conversationId, 
+          conversationId: activeConversation,
         }),
       });
 
@@ -180,8 +183,6 @@ const Chat = ({ token, setToken }) => {
         throw new Error(errorText || 'Failed to invite user');
       }
 
-      const data = await res.json();
-      console.log('Invited user:', data);
       alert(`User ${userId} invited successfully`);
     } catch (err) {
       console.error('Error inviting user:', err);
@@ -191,13 +192,22 @@ const Chat = ({ token, setToken }) => {
 
   const search = (e) => {
     const searchValue = e.target.value.toLowerCase();
-    const filteredUsers = users.filter(user => user.username.toLowerCase().includes(searchValue));
-    setUsers(filteredUsers);
+    setSearchValue(searchValue); // Uppdatera sökfältets state
+
+    // Filtrera användare baserat på sökvärdet
+    const filteredUsers = allUsers.filter((user) =>
+      user.username.toLowerCase().includes(searchValue)
+    );
+
+    setUsers(filteredUsers); // Uppdatera visade användare
+  };
+  const getUserInfo = (userId) => {
+    const user = usersInConvo.find((u) => u.userId === userId);
+    return user || { username, avatar };
   };
 
-  const getUserInfo = (userId) => {
-    const user = usersInConvo.find(u => u.userId === userId);
-    return user || { username: 'Unknown', avatar: icon };
+  const handleSelectConversation = (conversation) => {
+    setActiveConversation(conversation.id);
   };
 
   return (
@@ -207,6 +217,7 @@ const Chat = ({ token, setToken }) => {
           <input
             type="text"
             placeholder="Search users..."
+            value={searchValue}
             onChange={search}
             className="p-2 w-full rounded"
           />
@@ -218,43 +229,76 @@ const Chat = ({ token, setToken }) => {
                 src={user.avatar || 'default-avatar.png'}
                 alt="avatar"
                 className="w-8 h-8 rounded-full mr-2"
-                onError={(e) => { e.target.onerror = null; e.target.src = icon; }} 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = icon;
+                }}
               />
               <span>{user.username}</span>
-              <button onClick={() => handleInviteUser(user.userId)} className="ml-2 px-2 py-1 bg-blue-500 text-white rounded">
+              <button
+                onClick={() => handleInviteUser(user.userId)}
+                className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
+              >
                 Invite
               </button>
             </li>
           ))}
         </ul>
       </div>
-      <div className="flex flex-col items-center p-4">
-        <div className="mb-4">
-        </div>
-        <div className="w-full max-w-lg mb-4">  {/* hämtar ut användare som inte är den inloggade*/}
-          {messages.map((message) => {
-            const { username, avatar } = getUserInfo(message.userId);
+      <div className="flex">
+  {/* Conversation List */}
+  <div className="conversation-list w-1/6 h-[70vh] fixed top-1/2 transform -translate-y-1/2 left-0 flex flex-col items-center p-4 bg-gradient-to-b from-purple-900 to-blue-300 shadow-lg rounded-r-lg">
+    <h4 className="text-lg text-pink-100 font-light mb-4">Conversations</h4>
+    <ul className="space-y-2 w-full">
+      {conversations.map((conversation) => (
+        <li
+          key={conversation.id}
+          className={`cursor-pointer p-2 rounded text-center ${conversation.id === activeConversation ? 'bg-pink-600 text-white' : 'bg-purple-200'}`}
+          onClick={() => handleSelectConversation(conversation)}
+        >
+          {conversation.name}
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+  {/* Chat */}
+      <div className="flex flex-col items-center p-4 w-full">
+        <h2 className="text-m text-pink-100 font-light mb-4">
+          Currently chatting with: {conversations.find((convo) => convo.id === activeConversation)?.name || 'Unknown'}
+        </h2>
+        <div className="w-full max-w-lg mb-4">
+          {messages.map((message, index) => {
+            const { username, avatar, text } = getUserInfo(message.userId);
+            const isCurrentUser = message.userId?.toString() === userId?.toString();
             return (
               <div
-                key={message.id}
-                className={`flex items-start mb-4 ${message.userId?.toString() === userId?.toString() ? 'justify-end' : 'justify-start'}`}
+                key={`${message.id}-${index}`} 
+                className={`flex items-start mb-4 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
               >
                 <div className="flex items-center">
-                  {message.userId?.toString() !== userId?.toString() && (
+                  {!isCurrentUser && (
                     <img
                       src={avatar}
                       alt="avatar"
                       className="w-10 h-10 rounded-full mr-2"
-                      onError={(e) => { e.target.onerror = null; e.target.src = icon; }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = icon;
+                      }}
                     />
                   )}
-                  <div className={`chatbubbles ${message.userId?.toString() === userId?.toString() ? 'bg-blue-200' : 'bg-purple-200'}`}>
+                  <div className={`chatbubbles ${isCurrentUser ? 'bg-blue-200' : 'bg-purple-200'}`}>
                     <div className="flex items-center mb-2">
-                    <span className="font-semibold">{username}</span>
-                      <span className="ml-2 text-xs text-gray-500">{new Date(message.createdAt).toLocaleTimeString()}</span>
+                      <span className="font-semibold">{username}</span>
+                      <span className="ml-2 text-xs text-gray-500">
+                        {message.createdAt
+                          ? new Date(message.createdAt).toLocaleTimeString()
+                          : new Date().toLocaleTimeString()}
+                      </span>
                     </div>
                     <p>{message.text}</p>
-                    {message.userId?.toString() === userId?.toString() && (
+                    {isCurrentUser && (
                       <button
                         onClick={() => handleDeleteMessage(message.id)}
                         className="mt-2 text-red-500 text-xs"
@@ -263,12 +307,15 @@ const Chat = ({ token, setToken }) => {
                       </button>
                     )}
                   </div>
-                  {message.userId?.toString() === userId?.toString() && (
+                  {isCurrentUser && (
                     <img
                       src={avatar}
                       alt="avatar"
                       className="w-10 h-10 rounded-full ml-2"
-                      onError={(e) => { e.target.onerror = null; e.target.src = icon; }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = icon;
+                      }}
                     />
                   )}
                 </div>
@@ -291,10 +338,14 @@ const Chat = ({ token, setToken }) => {
             Send
           </button>
         </div>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+        <div className="w-full max-w-lg mt-8">
+        <h3 className="text-small font-semibold mb-4"></h3>
+        <InvitesList onAcceptInvite={(invite) => setActiveConversation(invite.conversationId)} />
       </div>
+      </div>
+   
     </div>
   );
 };
 
-export default Chat;
+export default Sentry.withProfiler(Chat);

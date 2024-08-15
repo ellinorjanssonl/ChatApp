@@ -28,7 +28,7 @@ const Login = ({ setToken, setUserId, csrfToken }) => {
     .then(data => {
       const { token } = data;
       const decodedToken = parseJwt(token);
-      const { id: userId, user, avatar, email, invite } = decodedToken;
+      const { id: userId, user, avatar, email, invite, text } = decodedToken;
 
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId);
@@ -36,6 +36,7 @@ const Login = ({ setToken, setUserId, csrfToken }) => {
       localStorage.setItem('avatar', avatar);
       localStorage.setItem('email', email);
       localStorage.setItem('invite', invite);
+      localStorage.setItem('text', text);
       setToken(token);
       setUserId(userId);
       setSuccess('Login successful');
@@ -82,6 +83,7 @@ const Login = ({ setToken, setUserId, csrfToken }) => {
           <button type="submit">Login</button>
         </form>
       </div>
+      
     </div>
   );
 }
