@@ -24,12 +24,12 @@ const Chat = ({ token, setToken }) => {
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
   const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
   const [users, setUsers] = useState([]);
-  const [allUsers, setAllUsers] = useState([]); // Alla användare som laddas in
+  const [allUsers, setAllUsers] = useState([]); 
   const [searchValue, setSearchValue] = useState(''); 
   const [usersInConvo, setUsersInConvo] = useState([]);
   const [invited, setInvited] = useState([]);
-  const [conversations, setConversations] = useState([]); // Ny state för att hantera alla konversationer
-  const [activeConversation, setActiveConversation] = useState(conversationId); // Ny state för aktiv konversation
+  const [conversations, setConversations] = useState([]); 
+  const [activeConversation, setActiveConversation] = useState(conversationId); 
 
   useEffect(() => {
     const fetchUsers = async () => {

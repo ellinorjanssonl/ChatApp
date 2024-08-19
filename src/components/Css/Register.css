@@ -131,6 +131,10 @@
   .register-form .error {
     color: red;
   }
+
+  .register-form .success {
+    color: rgb(69, 249, 69);
+  }
   
   .register-form .avatar-picker {
     display: flex;
