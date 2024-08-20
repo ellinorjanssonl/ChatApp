@@ -227,6 +227,7 @@ const Chat = ({ token, setToken }) => {
           ))}
         </ul>
       </div>
+      <div className="conversations">
       <div className="flex">
         <div className="conversation-list w-1/6 h-[70vh] fixed top-1/2 transform -translate-y-1/2 left-0 flex flex-col items-center p-4 bg-gradient-to-b from-purple-900 to-purple-400 shadow-lg rounded-r-lg">
           <h4 className="text-lg text-pink-100 font-light mb-4">Conversations</h4>
@@ -243,6 +244,7 @@ const Chat = ({ token, setToken }) => {
           </ul>
         </div>
       </div>
+    </div>
       <div className="flex flex-col items-center p-4 w-full">
         <h2 className="text-m text-pink-100 font-light mb-4">
           Currently chatting with: {conversations.find((convo) => convo.id === activeConversation)?.name || 'Unknown'}

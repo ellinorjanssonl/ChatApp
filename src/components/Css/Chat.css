@@ -48,10 +48,11 @@ body {
 }
 
 .user-list {
-  margin-top: 1rem;
-  position: absolute;
+  margin-top: 0.5rem;
+  position:fixed;
   right: 2rem;
   top: 1rem;
+  bottom: 2rem;
   min-width: 15rem;
   background-color: rgba(215, 232, 255, 0.4);
   backdrop-filter: blur(10px);
@@ -74,7 +75,7 @@ body {
 }
 
 .user-list ul {
-  max-height: 80vh;
+  max-height: 75vh;
   max-width: 15rem;
   overflow-y: scroll;
   overflow-x: scroll;
@@ -131,11 +132,11 @@ body {
 
 @media screen and (max-width: 768px) {
   .user-list {
+    min-width: 100vw;
     margin-top: 5rem;
     position: relative;
     right: auto;
     top: auto;
-    width: 100%;
     min-width: auto;
     background-color: rgba(215, 232, 255, 0.5);
     backdrop-filter: blur(10px);
@@ -143,19 +144,19 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
     padding: 1rem;
     margin-bottom: 1rem;
+    scrollbar-width: thin;
   }
 
   .user-list ul {
+    min-width: 90vw;
     display: flex;
     flex-direction: row;
     max-height: none;
-    overflow-y: hidden;
     overflow-x: scroll;
   }
 
   .user-list ul::-webkit-scrollbar {
-    height: 8px;
-    width: auto;
+    width: 100%;
   }
 
   .user-item {
@@ -163,4 +164,16 @@ body {
     margin-right: 10px;
     margin-bottom: 0;
   }
+
+  .chatbubbles {
+    border-radius: 10px;
+  }
+
+  .inputarea {
+    padding: 0.5rem;
+    background-color: rgba(206, 230, 255, 0.9);
+    border-radius: 0;
+  }
+
+
 }
