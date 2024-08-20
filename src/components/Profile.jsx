@@ -40,7 +40,7 @@ const Profile = ({ token, setToken }) => {
 
         const data = await res.json();
         console.log('Fetched user data:', data);
-        setUser(data[0]);  // Set user to the first element of the array
+        setUser(data[0]); 
       } catch (err) {
         console.error('Error fetching user data:', err);
         setError('Failed to fetch user data');

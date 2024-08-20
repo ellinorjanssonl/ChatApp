@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Css/Chat.css';
-import icon from './Assets/icon.png'; // Import the default icon
-import * as Sentry from '@sentry/react';
+import icon from './Assets/icon.png';
 import InvitesList from './Invites';
-
-const generateGUID = () => {
-  return crypto.randomUUID();
-};
 
 const sanitizeInput = (input) => {
   const temp = document.createElement('div');
@@ -18,19 +13,19 @@ const Chat = ({ token, setToken }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [error, setError] = useState('');
-  const [lastActivityTime, setLastActivityTime] = useState(new Date().toLocaleTimeString());
-  const [conversationId, setConversationId] = useState(localStorage.getItem('conversationId') || generateGUID());
+  const [conversationId, setConversationId] = useState(localStorage.getItem('conversationId') || '');
   const [avatar, setAvatar] = useState(localStorage.getItem('avatar') || '');
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
-  const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
+  const [userId] = useState(localStorage.getItem('userId') || '');
   const [users, setUsers] = useState([]);
-  const [allUsers, setAllUsers] = useState([]); 
-  const [searchValue, setSearchValue] = useState(''); 
+  const [allUsers, setAllUsers] = useState([]);
+  const [searchValue, setSearchValue] = useState('');
   const [usersInConvo, setUsersInConvo] = useState([]);
-  const [invited, setInvited] = useState([]);
-  const [conversations, setConversations] = useState([]); 
-  const [activeConversation, setActiveConversation] = useState(conversationId); 
+  const [invited, setInvited] = useState(JSON.parse(localStorage.getItem('invited')) || []);
+  const [conversations, setConversations] = useState(JSON.parse(localStorage.getItem('conversations')) || []);
+  const [activeConversation, setActiveConversation] = useState(conversationId);
 
+  // hämtar användare när sidan laddas
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -42,13 +37,11 @@ const Chat = ({ token, setToken }) => {
           },
         });
 
-        if (!res.ok) {
-          throw new Error('Failed to fetch users');
-        }
+        if (!res.ok) throw new Error('Failed to fetch users');
 
         const data = await res.json();
-        setAllUsers(data); // Spara alla användare
-        setUsers(data); // Sätt initialt visade användare
+        setAllUsers(data);
+        setUsers(data);
       } catch (err) {
         console.error('Error fetching users:', err);
         setError('Failed to fetch users');
@@ -58,9 +51,9 @@ const Chat = ({ token, setToken }) => {
     fetchUsers();
   }, [token]);
 
-  // Hämtar meddelanden när användare finns och aktiv konversation ändras
+  // hämtar meddelanden när en aktiv konversation ändras eller när användare ändras
   useEffect(() => {
-    if (users.length === 0) return;
+    if (!activeConversation) return;
 
     const fetchMessages = async () => {
       try {
@@ -72,25 +65,25 @@ const Chat = ({ token, setToken }) => {
           },
         });
 
-        if (!res.ok) {
-          throw new Error('Failed to fetch messages');
-        }
+        if (!res.ok) throw new Error('Failed to fetch messages');
 
         const data = await res.json();
         setMessages(data);
 
-        // Uppdaterar användare som är inblandade i konversationen
-        const involvedUsers = data.map((msg) => msg.userId).filter((v, i, a) => a.indexOf(v) === i); // Unika userID
+        // här uppdaterar jag användare i konversationen för att visa deras avatar och namn
+        const involvedUsers = data.map((msg) => msg.userId).filter((v, i, a) => a.indexOf(v) === i);
         const usersInvolved = users.filter((user) => involvedUsers.includes(user.userId));
         setUsersInConvo(usersInvolved);
 
-        // Lägg till konversationen i listan om den inte redan finns
+        // här sparar jag användare i localstorage så jag ska kunna uppdatera sidan och allt finns kvar
         if (!conversations.some((convo) => convo.id === activeConversation)) {
           const newConversation = {
             id: activeConversation,
-            name: usersInvolved.map((user) => user.username).join(', ') || 'Unknown',
+            name: usersInvolved.map((user) => user.username).join(', ') || 'Me',
           };
-          setConversations([...conversations, newConversation]);
+          const updatedConversations = [...conversations, newConversation];
+          setConversations(updatedConversations);
+          localStorage.setItem('conversations', JSON.stringify(updatedConversations));
         }
       } catch (err) {
         console.error('Error fetching messages:', err);
@@ -103,7 +96,7 @@ const Chat = ({ token, setToken }) => {
 
   const handleSendMessage = async () => {
     const sanitizedMessage = sanitizeInput(newMessage);
-  
+
     try {
       const res = await fetch('https://chatify-api.up.railway.app/messages', {
         method: 'POST',
@@ -116,34 +109,28 @@ const Chat = ({ token, setToken }) => {
           conversationId: activeConversation,
         }),
       });
-  
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || 'Failed to send message');
-      }
-  
+
+      if (!res.ok) throw new Error(await res.text() || 'Failed to send message');
+
       const data = await res.json();
-      const latestMessage = data.latestMessage; 
-  
-      
+      const latestMessage = data.latestMessage;
+
       setMessages((prevMessages) => [
         ...prevMessages,
         {
           ...latestMessage,
-          userId: userId, 
-          username: username, 
-          avatar: avatar, 
+          userId,
+          username,
+          avatar,
         },
       ]);
-  
-      setNewMessage(''); 
-      setLastActivityTime(new Date().toLocaleTimeString()); 
+
+      setNewMessage('');
     } catch (err) {
       console.error('Error sending message:', err);
       setError(`Failed to send message: ${err.message}`);
     }
   };
-
 
   const handleDeleteMessage = async (msgId) => {
     try {
@@ -155,13 +142,9 @@ const Chat = ({ token, setToken }) => {
         },
       });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || 'Failed to delete message');
-      }
+      if (!res.ok) throw new Error(await res.text() || 'Failed to delete message');
 
-      setMessages(messages.filter((message) => message.id !== msgId));
-      setLastActivityTime(Date.now());
+      setMessages((prevMessages) => prevMessages.filter((message) => message.id !== msgId));
     } catch (err) {
       console.error('Error deleting message:', err);
       setError('Failed to delete message');
@@ -181,10 +164,7 @@ const Chat = ({ token, setToken }) => {
         }),
       });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || 'Failed to invite user');
-      }
+      if (!res.ok) throw new Error(await res.text() || 'Failed to invite user');
 
       alert(`User ${userId} invited successfully`);
     } catch (err) {
@@ -195,15 +175,13 @@ const Chat = ({ token, setToken }) => {
 
   const search = (e) => {
     const searchValue = e.target.value.toLowerCase();
-    setSearchValue(searchValue); // Uppdatera sökfältets state
+    setSearchValue(searchValue);
 
-    // Filtrera användare baserat på sökvärdet
-    const filteredUsers = allUsers.filter((user) =>
-      user.username.toLowerCase().includes(searchValue)
-    );
-
-    setUsers(filteredUsers); // Uppdatera visade användare
+    // Filter users based on search value
+    const filteredUsers = allUsers.filter((user) => user.username.toLowerCase().includes(searchValue));
+    setUsers(filteredUsers);
   };
+
   const getUserInfo = (userId) => {
     const user = usersInConvo.find((u) => u.userId === userId);
     return user || { username, avatar };
@@ -211,6 +189,7 @@ const Chat = ({ token, setToken }) => {
 
   const handleSelectConversation = (conversation) => {
     setActiveConversation(conversation.id);
+    localStorage.setItem('conversationId', conversation.id);
   };
 
   return (
@@ -249,23 +228,21 @@ const Chat = ({ token, setToken }) => {
         </ul>
       </div>
       <div className="flex">
-  {/* Conversation List */}
-  <div className="conversation-list w-1/6 h-[70vh] fixed top-1/2 transform -translate-y-1/2 left-0 flex flex-col items-center p-4 bg-gradient-to-b from-purple-900 to-blue-300 shadow-lg rounded-r-lg">
-    <h4 className="text-lg text-pink-100 font-light mb-4">Conversations</h4>
-    <ul className="space-y-2 w-full">
-      {conversations.map((conversation) => (
-        <li
-          key={conversation.id}
-          className={`cursor-pointer p-2 rounded text-center ${conversation.id === activeConversation ? 'bg-pink-600 text-white' : 'bg-purple-200'}`}
-          onClick={() => handleSelectConversation(conversation)}
-        >
-          {conversation.name}
-        </li>
-      ))}
-    </ul>
-  </div>
-</div>
-  {/* Chat */}
+        <div className="conversation-list w-1/6 h-[70vh] fixed top-1/2 transform -translate-y-1/2 left-0 flex flex-col items-center p-4 bg-gradient-to-b from-purple-900 to-purple-400 shadow-lg rounded-r-lg">
+          <h4 className="text-lg text-pink-100 font-light mb-4">Conversations</h4>
+          <ul className="space-y-2 w-full">
+            {conversations.map((conversation) => (
+              <li
+                key={conversation.id}
+                className={`cursor-pointer p-2 rounded text-center ${conversation.id === activeConversation ? 'bg-pink-500 text-white' : 'bg-purple-200'}`}
+                onClick={() => handleSelectConversation(conversation)}
+              >
+                {conversation.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
       <div className="flex flex-col items-center p-4 w-full">
         <h2 className="text-m text-pink-100 font-light mb-4">
           Currently chatting with: {conversations.find((convo) => convo.id === activeConversation)?.name || 'Unknown'}
@@ -276,7 +253,7 @@ const Chat = ({ token, setToken }) => {
             const isCurrentUser = message.userId?.toString() === userId?.toString();
             return (
               <div
-                key={`${message.id}-${index}`} 
+                key={`${message.id}-${index}`}
                 className={`flex items-start mb-4 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
               >
                 <div className="flex items-center">
@@ -295,9 +272,7 @@ const Chat = ({ token, setToken }) => {
                     <div className="flex items-center mb-2">
                       <span className="font-semibold">{username}</span>
                       <span className="ml-2 text-xs text-gray-500">
-                        {message.createdAt
-                          ? new Date(message.createdAt).toLocaleTimeString()
-                          : new Date().toLocaleTimeString()}
+                        {message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : new Date().toLocaleTimeString()}
                       </span>
                     </div>
                     <p>{message.text}</p>
@@ -334,21 +309,16 @@ const Chat = ({ token, setToken }) => {
             placeholder="Type your message..."
             className="inputarea p-2 w-full rounded-l"
           />
-          <button
-            onClick={handleSendMessage}
-            className="p-2 bg-pink-600 text-white rounded"
-          >
+          <button onClick={handleSendMessage} className="p-2 bg-pink-600 text-white rounded">
             Send
           </button>
         </div>
         <div className="w-full max-w-lg mt-8">
-        <h3 className="text-small font-semibold mb-4"></h3>
-        <InvitesList onAcceptInvite={(invite) => setActiveConversation(invite.conversationId)} />
+          <InvitesList onAcceptInvite={(invite) => setActiveConversation(invite.conversationId)} />
+        </div>
       </div>
-      </div>
-   
     </div>
   );
 };
 
-export default Sentry.withProfiler(Chat);
+export default Chat;

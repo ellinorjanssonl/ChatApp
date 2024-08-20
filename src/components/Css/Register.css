@@ -132,8 +132,18 @@
     color: red;
   }
 
-  .register-form .success {
-    color: rgb(69, 249, 69);
+  .success {
+    color: rgb(131, 255, 131);
+  }
+  .buttonlogin {
+      width: 50%;
+      color: rgb(131, 255, 131);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 2rem;
+      font-size: 1rem;
+      text-decoration: underline;
   }
   
   .register-form .avatar-picker {

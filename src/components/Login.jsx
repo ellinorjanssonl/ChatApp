@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import './Css/Login.css';
 
 const Login = ({ setToken, setUserId, csrfToken }) => {
@@ -7,6 +8,8 @@ const Login = ({ setToken, setUserId, csrfToken }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const location = useLocation();
+  const message = location.state?.message || '';
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
@@ -28,7 +31,7 @@ const Login = ({ setToken, setUserId, csrfToken }) => {
     .then(data => {
       const { token } = data;
       const decodedToken = parseJwt(token);
-      const { id: userId, user, avatar, email, invite, text } = decodedToken;
+      const { id: userId, user, avatar, email, invite } = decodedToken;
 
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId);
@@ -36,7 +39,6 @@ const Login = ({ setToken, setUserId, csrfToken }) => {
       localStorage.setItem('avatar', avatar);
       localStorage.setItem('email', email);
       localStorage.setItem('invite', invite);
-      localStorage.setItem('text', text);
       setToken(token);
       setUserId(userId);
       setSuccess('Login successful');
@@ -71,6 +73,7 @@ const Login = ({ setToken, setUserId, csrfToken }) => {
     <div className="container">
       <div className="login-form">
         <h1>LOGIN</h1>
+        {message && <p className="success">{message}</p>} 
         {error && <p className="error">{error}</p>}
         {success && <p className="success">{success}</p>}
         <form onSubmit={handleLogin}>

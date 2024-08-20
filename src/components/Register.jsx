@@ -10,7 +10,6 @@ const Register = ({ csrfToken }) => {
   const [error, setError] = useState('');
   const [images, setImages] = useState([]);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,12 +53,12 @@ const Register = ({ csrfToken }) => {
         
       }
 
-      setSuccess('Registration successful');
+     
       localStorage.setItem('userId', data.userId);
       localStorage.setItem('username', username);
       localStorage.setItem('email', email);
       localStorage.setItem('avatar', avatar);
-      navigate('/login'); 
+      navigate('/login', { state: { message: 'Registration successful' } });
     })
     .catch(err => setError(err.message));
   };
@@ -79,7 +78,7 @@ const Register = ({ csrfToken }) => {
       <div className="register-form">
         <h1>REGISTER</h1>
         {error && <p className="error">{error}</p>}
-        {success && <p className="success">{success}</p>}
+        <p className='success'>Already have an account? <a className='buttonlogin' href="/login">Login</a></p>
         <form id="register" onSubmit={handleRegister}>
           <label>
             <input type="text" placeholder='Username 🙂' value={username} onChange={(e) => setUsername(e.target.value)} />
